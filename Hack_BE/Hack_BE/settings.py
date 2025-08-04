@@ -14,6 +14,11 @@ from pathlib import Path
 from decouple import config
 from datetime import timedelta
 
+#영서
+import pymysql
+pymysql.install_as_MySQLdb()
+
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -54,6 +59,7 @@ INSTALLED_APPS = [
     # 앱 목록
     'accounts',
     'policy',
+
 ]
 
 MIDDLEWARE = [
@@ -67,7 +73,7 @@ MIDDLEWARE = [
     'allauth.account.middleware.AccountMiddleware',    # 로그인 관련
 ]
 
-ROOT_URLCONF = 'antiaging.urls'
+ROOT_URLCONF = 'antiaging.urls' # antiaging - 프로젝트 이름명 에러 
 
 TEMPLATES = [
     {
