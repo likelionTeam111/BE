@@ -6,10 +6,12 @@ from .models import *
 from .serializers import *
 import requests
 from django.http import JsonResponse
+from decouple import config
 
-def load_policies(request):
+def load_policies():
     url = 'https://www.youthcenter.go.kr/go/ythip/getPlcy'
-    api_key = '6ae7fc43-0101-4352-b1c2-bcc4a0f09495' 
+    api_key = config('youth_api_key')
+    print(config('youth_api_key'))
 
     saved = 0
     skipped = 0
