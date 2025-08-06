@@ -1,8 +1,7 @@
 from django.urls import path
+from .views import load_policies
 
-from .views import Policy
-
-app_name = 'policy'
+app_name = 'load_policies'
 urlpatterns = [ 
-    path('',Policy),
+    path('',load_policies),
 ]
