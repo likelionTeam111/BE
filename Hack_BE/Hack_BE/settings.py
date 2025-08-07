@@ -14,7 +14,7 @@ from pathlib import Path
 from decouple import config
 from datetime import timedelta
 
-#영서
+#영서(?)
 import pymysql
 pymysql.install_as_MySQLdb()
 
@@ -59,6 +59,8 @@ INSTALLED_APPS = [
     # 앱 목록
     'accounts',
     'policy',
+    # embedding
+    "pgvector.django",
 
 ]
 
@@ -98,8 +100,12 @@ WSGI_APPLICATION = 'Hack_BE.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': config('DJANGO_DB_ENGINE'),
+        'NAME': config('DJANGO_DB_NAME'),
+        'USER': config('DJANGO_DB_USER'),
+        'PASSWORD': config('DJANGO_DB_PASSWORD'),
+        'HOST': config('DJANGO_DB_HOST'),
+        'PORT': config('DJANGO_DB_PORT'),
     }
 }
 
