@@ -5,6 +5,7 @@ from tqdm import tqdm
 import numpy as np
 from django.core.management.base import BaseCommand
 
+
 # ✅ 모델 로딩
 
 model = SentenceTransformer('jhgan/ko-sbert-sts')
