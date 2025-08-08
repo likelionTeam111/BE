@@ -6,10 +6,11 @@ from .models import *
 from .serializers import *
 import requests
 from django.http import JsonResponse
+from django.conf import settings
 
 def load_policies(request):
     url = 'https://www.youthcenter.go.kr/go/ythip/getPlcy'
-    api_key = '6ae7fc43-0101-4352-b1c2-bcc4a0f09495' 
+    api_key = settings.API_KEY  #수정 
 
     saved = 0
     skipped = 0
