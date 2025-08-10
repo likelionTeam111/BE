@@ -10,7 +10,7 @@ from django.conf import settings
 
 def load_policies(request):
     url = 'https://www.youthcenter.go.kr/go/ythip/getPlcy'
-    api_key = settings.API_KEY  #수정 
+    youth_api_key = settings.youth_api_key  #수정 
 
     saved = 0
     skipped = 0
@@ -18,7 +18,7 @@ def load_policies(request):
 
     while True:
         params = {
-            'apiKeyNm': api_key,
+            'apiKeyNm': youth_api_key, #수정 
             'pageNum': page,
             'pageSize': 100,
             'rtnType': 'json'
