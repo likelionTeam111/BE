@@ -121,7 +121,7 @@ class Policy(models.Model):
     frstRegDt = models.TextField(null=True, blank=True)  # 최초 등록일시
     lastMdfcnDt = models.TextField(null=True, blank=True)  # 최종 수정일시
     sbizCd = models.CharField(max_length=100, choices=SBIZ_CHOICES, null=True, blank=True)  # 정책 특화 요건 코드
-    embedding = VectorField(dimensions=768, null=True, blank=True)  # ko-sbert는 768차원
+    embedding = VectorField(dimensions=1024, null=True, blank=True)  # ko-sbert는 768차원
 
     def __str__(self):
         return self.plcyNm
