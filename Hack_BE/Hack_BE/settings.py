@@ -55,9 +55,6 @@ INSTALLED_APPS = [
     # 앱 목록
     'accounts',
     'policy',
-    # embedding
-    "pgvector.django",
-
 ]
 
 MIDDLEWARE = [

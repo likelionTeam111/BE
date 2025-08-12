@@ -8,39 +8,55 @@ from .serializers import *
 from rest_framework import generics
 from rest_framework.pagination import PageNumberPagination
 
+# chat봇 관련
+import json
+from uuid import uuid4
 
-# embedding 관련
-from sentence_transformers import SentenceTransformer
-from pgvector.django import CosineDistance
-from rest_framework.response import Response
-from rest_framework.views import APIView
-from rest_framework import status
+from django.http import JsonResponse
+from django.views import View
+from django.utils.decorators import method_decorator
+from django.views.decorators.csrf import csrf_exempt
+from .langchain import ai_chat
 
+# csrf 발급
+from django.middleware.csrf import get_token
 
+def csrf_token(request):
+    return JsonResponse({"csrfToken": get_token(request)})
+    
+@method_decorator(csrf_exempt, name="dispatch")  # 운영에선 제거하고 CSRF 헤더/쿠키 사용 권장
+class Chat(View):
+
+    def post(self, request):
+        # JSON 파싱
+        try:
+            payload = json.loads(request.body.decode("utf-8"))
+        except Exception:
+            return JsonResponse({"error": "invalid json"}, status=400)
+
+        # message
+        message = payload.get("message").strip()
+        if not message:
+            return JsonResponse({"error": "message is required"}, status=400)
+
+        # thread_id
+        thread_id = (
+            payload.get("thread_id")
+            or getattr(getattr(request, "session", None), "session_key", None)
+            or str(uuid4())
+        )
+
+        answer = ai_chat(message, thread_id)
+        resp = JsonResponse(
+            {"answer": answer, "thread_id": thread_id},
+            json_dumps_params={"ensure_ascii": False},
+        )
+        # 선택: thread_id를 쿠키로 내려 프론트가 재사용하게
+        if "thread_id" not in payload:
+            resp.set_cookie("thread_id", thread_id, samesite="Lax")
+        return resp
+        
 class Policy_list(generics.ListAPIView):
     queryset = Policy.objects.all()
     serializer_class = PolicySerializer
     pagination_class = PageNumberPagination
-
-model = SentenceTransformer('jhgan/ko-sbert-sts')
-class SimilarPolicySearch(APIView):
-    def get(self, request):
-        query = request.query_params.get("q")
-        if not query:
-            return Response({"error": "검색어(q)를 입력하세요."}, status=400)
-
-        try:
-            # 1. 사용자 질문 임베딩
-            query_embedding = model.encode(query)
-
-            # 2. pgvector 유사도 검색
-            results = Policy.objects.annotate(
-                similarity=CosineDistance("embedding", query_embedding)
-            ).order_by("similarity")[:5]
-
-            # 3. 직렬화
-            serializer = PolicySerializer(results, many=True)
-            return Response(serializer.data)
-
-        except Exception as e:
-            return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
