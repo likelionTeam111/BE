@@ -49,7 +49,7 @@ def retrieve(query: str):
     """Retrieve information related to a query."""
     retrieved_docs = vector_store.similarity_search(query, k=3)
     serialized = "\n".join(
-        (f"Content: {doc.page_content}")
+        (f"Source: {doc.metadata}\nContent: {doc.page_content}")
         for doc in retrieved_docs
     )
     return serialized, retrieved_docs

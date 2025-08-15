@@ -65,7 +65,12 @@ class PolicyLoader(BaseLoader):
         for p in self.qs.iterator(chunk_size=500):
             docs.append(
                 Document(
-                    page_content=build_policy_text(p)
+                    page_content=build_policy_text(p),
+                    metadata={
+                        "정책명": p.plcyNm,
+                        "키워드": f"{p.plcyKywdNm}, {p.lclsfNm}, {p.mclsfNm}",
+                        "source": f"{p.aplyUrlAddr} or {p.refUrlAddr} or {p.refUrlAddr2}"
+                    }
                 )
             )
         return docs
