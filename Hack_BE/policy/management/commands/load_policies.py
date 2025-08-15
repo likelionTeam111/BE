@@ -27,12 +27,13 @@ class Command(BaseCommand):
                 break
             
             for policy_data in policy_list:
-                # 서울만 저장
-                if policy_data.get('rgtrHghrkInstCdNm') != '서울특별시':
+                # 중앙부처만 저장
+                if policy_data.get('pvsnInstGroupCd') != '0054001':
                     continue
                 _, created = Policy.objects.update_or_create(
                     plcyNo = policy_data['plcyNo'],
                     defaults={
+                        'plcyPvsnMthdCd': policy_data.get('plcyPvsnMthdCd',""),
                         'plcyNm': policy_data.get('plcyNm',""),
                         'plcyKywdNm': policy_data.get('plcyKywdNm',""),
                         'plcyExplnCn': policy_data.get('plcyExplnCn',""),
@@ -60,17 +61,16 @@ class Command(BaseCommand):
                         'earnEtcCn': policy_data.get('earnEtcCn',""),
                         'addAplyQlfcCndCn': policy_data.get('addAplyQlfcCndCn',""),
                         'ptcpPrpTrgtCn': policy_data.get('ptcpPrpTrgtCn',""),
-                        'nqCnt': policy_data.get('nqCnt',""),
+                        'inqCnt': policy_data.get('inqCnt',""),
                         'rgtrInstCdNm': policy_data.get('rgtrInstCdNm',""),
                         'rgtrHghrkInstCdNm': policy_data.get('rgtrHghrkInstCdNm',""),
-                        'zipCd': policy_data.get('zipCd',""),
                         'plcyMajorCd': policy_data.get('plcyMajorCd',""),
                         'jobCd': policy_data.get('jobCd',""),
                         'schoolCd': policy_data.get('schoolCd',""),
                         'aplyYmd': policy_data.get('aplyYmd',""),
                         'frstRegDt': policy_data.get('frstRegDt',""),
                         'lastMdfcnDt': policy_data.get('lastMdfcnDt',""),
-                        'sBizCd': policy_data.get('sBizCd',""),
+                        'sbizCd': policy_data.get('sbizCd',""),
                     }
                 )
                 if created:
