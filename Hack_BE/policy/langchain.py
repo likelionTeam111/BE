@@ -47,9 +47,9 @@ graph_builder = StateGraph(MessagesState)
 @tool(response_format="content_and_artifact")
 def retrieve(query: str):
     """Retrieve information related to a query."""
-    retrieved_docs = vector_store.similarity_search(query)
-    serialized = "\n\n".join(
-        (f"Source: {doc.metadata}\nContent: {doc.page_content}")
+    retrieved_docs = vector_store.similarity_search(query, k=3)
+    serialized = "\n".join(
+        (f"Content: {doc.page_content}")
         for doc in retrieved_docs
     )
     return serialized, retrieved_docs
@@ -78,14 +78,13 @@ def generate(state: MessagesState):
     tool_messages = recent_tool_messages[::-1]
 
     # Format into prompt
-    docs_content = "\n\n".join(doc.content for doc in tool_messages)
+    docs_content = "\n".join(doc.content for doc in tool_messages)
     system_message_content = (
         "You are an assistant for question-answering tasks. "
         "Use the following pieces of retrieved context to answer "
         "the question. If you don't know the answer, say that you "
         "don't know. Use three sentences maximum and keep the "
         "answer concise."
-        "\n\n"
         f"{docs_content}"
     )
     conversation_messages = [

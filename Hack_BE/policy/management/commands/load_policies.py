@@ -64,7 +64,6 @@ class Command(BaseCommand):
                         'inqCnt': policy_data.get('inqCnt',""),
                         'rgtrInstCdNm': policy_data.get('rgtrInstCdNm',""),
                         'rgtrHghrkInstCdNm': policy_data.get('rgtrHghrkInstCdNm',""),
-                        'zipCd': policy_data.get('zipCd',""),
                         'plcyMajorCd': policy_data.get('plcyMajorCd',""),
                         'jobCd': policy_data.get('jobCd',""),
                         'schoolCd': policy_data.get('schoolCd',""),

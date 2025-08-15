@@ -17,12 +17,6 @@ from django.views import View
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
 from .langchain import ai_chat
-
-# csrf 발급
-from django.middleware.csrf import get_token
-
-def csrf_token(request):
-    return JsonResponse({"csrfToken": get_token(request)})
     
 @method_decorator(csrf_exempt, name="dispatch")  # 운영에선 제거하고 CSRF 헤더/쿠키 사용 권장
 class Chat(View):

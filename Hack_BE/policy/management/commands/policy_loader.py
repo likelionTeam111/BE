@@ -3,7 +3,7 @@ from langchain_core.document_loaders import BaseLoader
 from policy.models import Policy
 
 def _get_display(obj, field):
-    """choices 필드면 get_FOO_display() 호출, 아니면 ''"""
+    """enum 필드면 get_FOO_display() 호출, 아니면 ''"""
     method = f"get_{field}_display"
     if hasattr(obj, method):
         try:
@@ -12,37 +12,49 @@ def _get_display(obj, field):
             return ""
     return ""
 
+def _add_part(parts, label, value):
+    text = str(value).strip()
+    if text == "" or text == "0":
+        return
+    if text:
+        parts.append(f"[{label}] {text}")
+
+def num_data(value):
+    if value == "0":
+        return ""
+    else:
+        return value
+
 def build_policy_text(p: "Policy") -> str:
-    parts = [
-        f"[정책명] {p.plcyNm or ''}",
-        f"[정책 설명] {p.plcyExplnCn or ''}",
-        f"[지원 내용] {p.plcySprtCn or ''}",
-        f"[신청 방법] {p.plcyAplyMthdCn or ''}",
-        f"[제출 서류] {p.sbmsnDcmntCn or ''}",
-        f"[대상 연령] {getattr(p, 'sprtTrgtMinAge', '') or ''} ~ {getattr(p, 'sprtTrgtMaxAge', '') or ''}세",
-        f"[신청 URL] {getattr(p, 'aplyUrlAddr', '') or ''}",
-    ]
+    parts = []
 
-    # ENUM/choices 필드 display
-    parts += [
-        f"[제공 방법] {_get_display(p, 'plcyPvsnMthdCd')}",
-        f"[결혼 요건] {_get_display(p, 'mrgSttsCd')}",
-        f"[소득 조건] {_get_display(p, 'earnCndSeCd')}",
-        f"[전공 요건] {_get_display(p, 'plcyMajorCd')}",
-        f"[취업 요건] {_get_display(p, 'jobCd')}",
-        f"[학력 요건] {_get_display(p, 'schoolCd')}",
-        f"[특화 대상] {_get_display(p, 'sbizCd')}",
-    ]
+    # 기본 필드
+    _add_part(parts, "정책명", p.plcyNm)
+    _add_part(parts, "키워드", f"{p.plcyKywdNm}, {p.lclsfNm}, {p.mclsfNm}")
+    _add_part(parts, "제공방법", _get_display(p, "plcyPvsnMthdCd"))
+    _add_part(parts, "정책 설명", f"{p.plcyExplnCn}, {p.plcySprtCn}, {p.etcMttrCn}, {_get_display(p, 'plcyPvsnMthdCd')}")
+    _add_part(parts, "사업 기간", f"{p.bizPrdBgngYmd}~{p.bizPrdEndYmd}" if p.bizPrdBgngYmd or p.bizPrdEndYmd else p.bizPrdEtcCn)
+    _add_part(parts, "신청 방법", p.plcyAplyMthdCn)
+    _add_part(parts, "신청 서류", p.sbmsnDcmntCn)
+    _add_part(parts, "심사 방법", p.srngMthdCn)
+    _add_part(parts, "신청 기간", p.aplyYmd)
+    _add_part(parts, "URL", p.aplyUrlAddr or p.refUrlAddr1 or p.refUrlAddr2)
+    _add_part(parts, "등록기관", p.rgtrInstCdNm)
 
-    # 기타 정보성 텍스트
-    for fname in ["etcMttrCn", "addAplyQlfcCndCn", "ptcpPrpTrgtCn"]:
-        v = getattr(p, fname, None)
-        if v:
-            parts.append(f"[{fname}] {v}")
+    # 요건 필드
+    _add_part(parts, "나이 요건", f"{_get_display(p, 'sprtTrgtAgeLmtYn')} or {num_data(p.sprtTrgtMinAge)} ~ {num_data(p.sprtTrgtMaxAge)}")
+    _add_part(parts, "결혼 요건", _get_display(p, "mrgSttsCd"))
+    _add_part(parts, "소득 요건", f"{_get_display(p, 'earnCndSeCd')}" if _get_display(p, 'earnCndSeCd') == "무관" else f"{num_data(p.earnMinAmt)}~{num_data(p.earnMaxAmt)} or {p.earnEtcCn}")
+    _add_part(parts, "전공 요건", _get_display(p, "plcyMajorCd"))
+    _add_part(parts, "취업 요건", _get_display(p, "jobCd"))
+    _add_part(parts, "학력 요건", _get_display(p, "schoolCd"))
+    _add_part(parts, "특화 요건", _get_display(p, "sbizCd"))
 
-    # 빈 문자열 제거
-    parts = [s for s in parts if s and s.strip()]
-    return "\n".join(parts)
+    # 기타 필드
+    _add_part(parts,"가신청 자격조건", p.addAplyQlfcCndCn)
+    _add_part(parts,"참여 제안 대상 내용", p.ptcpPrpTrgtCn)
+
+    return ", ".join(parts)
 
 class PolicyLoader(BaseLoader):
     def __init__(self, queryset):
@@ -53,13 +65,7 @@ class PolicyLoader(BaseLoader):
         for p in self.qs.iterator(chunk_size=500):
             docs.append(
                 Document(
-                    page_content=build_policy_text(p),
-                    metadata={
-                        "plcyNo": p.plcyNo,
-                        "name": p.plcyNm,
-                        "source": p.refUrlAddr1 or p.refUrlAddr2 or "",
-                        "lclsfNm": p.lclsfNm, "mclsfNm": p.mclsfNm,
-                    },
+                    page_content=build_policy_text(p)
                 )
             )
         return docs
