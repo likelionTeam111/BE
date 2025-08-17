@@ -35,14 +35,6 @@ class CustomUserDetailSerializer(serializers.ModelSerializer):
         model = CustomUser
         fields = ['id', 'username', 'password', 'nickname']
 
-
-# #마이페이지 전용 - password 
-# class MyPageSerializer(serializers.ModelSerializer):
-#     class Meta:
-#         model = CustomUser
-#         fields = ['id','username','nickname','age','location']
-#         read_only_fields = fields 
-
 class CustomLoginSerializer(LoginSerializer):
     email = None
 
