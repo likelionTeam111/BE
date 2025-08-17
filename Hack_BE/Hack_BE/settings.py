@@ -50,6 +50,7 @@ INSTALLED_APPS = [
     'allauth.account',                 # django-allauth
     'allauth.socialaccount',           # django-allauth
     'drf_yasg',                        # drf-yasg
+    'drf_spectacular',
     'corsheaders',
     # simple-jwt 관련
     'rest_framework_simplejwt',
@@ -156,13 +157,13 @@ REST_AUTH = {
     'JWT_SERIALIZER': 'dj_rest_auth.serializers.JWTSerializer',
     'JWT_SERIALIZER_WITH_EXPIRATION': 'dj_rest_auth.serializers.JWTSerializerWithExpiration',
     'JWT_TOKEN_CLAIMS_SERIALIZER': 'rest_framework_simplejwt.serializers.TokenObtainPairSerializer',
-    #'USER_DETAILS_SERIALIZER': 'dj_rest_auth.serializers.UserDetailsSerializer', # 추후 user detail 커스텀
+    #'USER_DETAILS_SERIALIZER': 'dj_rest_auth.serializers.UserDetailsSerializer', # user detail 커스텀
     'USER_DETAILS_SERIALIZER': 'accounts.serializers.CustomUserDetailSerializer',
     'PASSWORD_RESET_SERIALIZER': 'dj_rest_auth.serializers.PasswordResetSerializer',
     'PASSWORD_RESET_CONFIRM_SERIALIZER': 'dj_rest_auth.serializers.PasswordResetConfirmSerializer',
     'PASSWORD_CHANGE_SERIALIZER': 'dj_rest_auth.serializers.PasswordChangeSerializer',
 
-    #'REGISTER_SERIALIZER': 'accounts.serializers.CustomRegisterSerializer',    # 추후 register 커스텀
+    #'REGISTER_SERIALIZER': 'accounts.serializers.CustomRegisterSerializer',    # register 커스텀
     'REGISTER_SERIALIZER': 'accounts.serializers.CustomRegisterSerializer',
     'REGISTER_PERMISSION_CLASSES': ('rest_framework.permissions.AllowAny',),
 
@@ -187,6 +188,7 @@ REST_AUTH = {
 }
 
 REST_FRAMEWORK = {
+    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework_simplejwt.authentication.JWTAuthentication',
     ),
@@ -215,3 +217,25 @@ ACCOUNT_USER_MODEL_EMAIL_FIELD = None
 ACCOUNT_EMAIL_VERIFICATION = 'none'
 ACCOUNT_EMAIL_REQUIRED = False
 ACCOUNT_SIGNUP_FIELDS = ['username*', 'password1*', 'password2*'] #이메일 제거 
+
+SPECTACULAR_SETTINGS = {
+    # General schema metadata. Refer to spec for valid inputs
+    # https://github.com/OAI/OpenAPI-Specification/blob/master/versions/3.0.3.md#openapi-object
+    'TITLE': 'drf-spectacular API Document',
+    'DESCRIPTION': 'drf-specatular 를 사용해서 만든 API 문서입니다.',
+    'SWAGGER_UI_SETTINGS': {
+        'dom_id': '#swagger-ui',
+        'layout': 'BaseLayout', 
+        'deepLinking': True,  
+        'displayOperationId': True,
+        'filter': True,
+    },
+   
+    'LICENSE': {
+        'name': 'MIT License',
+    },
+    'VERSION': '1.0.0',
+    'SERVE_INCLUDE_SCHEMA': False,
+
+    'SWAGGER_UI_DIST': '//unpkg.com/swagger-ui-dist@3.38.0',
+}
