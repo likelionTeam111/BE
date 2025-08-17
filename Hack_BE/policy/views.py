@@ -74,7 +74,7 @@ class Favorite_policy_list_View(generics.ListAPIView):
     # 마이페이지
     permission_classes = [permissions.IsAuthenticated]
     serializer_class = FavoriteListSerializer
-    pagination_class = PageNumberPagination
+    pagination_class = None
     
     def get_queryset(self):
         return Policy.objects.filter(
