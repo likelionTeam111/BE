@@ -7,6 +7,7 @@ from django.contrib.auth import authenticate
 
 
 class CustomRegisterSerializer(RegisterSerializer):
+    _has_phone_field = False
     email = None
 
     username = serializers.CharField(required=True)

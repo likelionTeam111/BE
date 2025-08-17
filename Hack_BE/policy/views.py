@@ -1,101 +1,82 @@
-from django.shortcuts import render
-from rest_framework.viewsets import ModelViewSet
-# Create your views here.
-
 from .models import *
 from .serializers import *
-import requests
-from django.http import JsonResponse
-from django.conf import settings
 
-def load_policies(request):
-    url = 'https://www.youthcenter.go.kr/go/ythip/getPlcy'
-    youth_api_key = settings.youth_api_key  #수정 
+from rest_framework import generics, permissions
+from rest_framework.pagination import PageNumberPagination
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework import status
+from django.shortcuts import get_object_or_404
 
-    saved = 0
-    skipped = 0
-    page = 1
+# chat봇 관련
+from uuid import uuid4
+from .langchain import ai_chat
+    
+class ChatView(APIView):
+    def post(self, request, *args, **kwargs):
+        serializer = ChatRequestSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        message = serializer.validated_data["message"].strip()
 
-    while True:
-        params = {
-            'apiKeyNm': youth_api_key, #수정 
-            'pageNum': page,
-            'pageSize': 100,
-            'rtnType': 'json'
-        }
+        thread_id = serializer.validated_data.get("thread_id") or str(uuid4())
+                    # request.COOKIES.get("thread_id") or \
+                    # getattr(getattr(request, "session", None), "session_key", None) or \
+                    
+        answer = ai_chat(message, thread_id)
 
-        response = requests.get(url, params=params)
+        resp_serializer = ChatResponseSerializer({
+            "answer": answer,
+            "thread_id": thread_id
+        })
 
-        if response.status_code != 200:
-            print(f"API 요청 실패 - status: {response.status_code}")
-            return JsonResponse({'error': 'API 요청 실패'}, status=500)
+        resp = Response(resp_serializer.data, status=status.HTTP_200_OK)
+        return resp
+    
+class Policy_list(generics.ListAPIView):
+    # 참고용
+    queryset = Policy.objects.all()
+    serializer_class = PolicySerializer
+    pagination_class = PageNumberPagination
 
-        try:
-            data = response.json()
-            policy_list = data.get('result', {}).get('youthPolicyList', [])
-        except Exception as e:
-            print(f"JSON 파싱 오류: {e}")
-            return JsonResponse({'error': '응답 파싱 실패'}, status=500)
-        
-        def to_int_or_none(value):
-            try:
-                return int(value)
-            except (TypeError, ValueError):
-                return None
+class Brief_policy_info(generics.RetrieveAPIView):
+    queryset = Policy.objects.all()
+    serializer_class = BriefPolicySerializer
+    lookup_field = 'id'
+    lookup_url_kwarg = 'id'
 
-        # 데이터가 없으면 종료
-        if not policy_list:
-            break  
+class Detail_policy_info(generics.RetrieveAPIView):
+    queryset = Policy.objects.all()
+    serializer_class = DetailPolicySerializer
+    lookup_field = 'id'
+    lookup_url_kwarg = 'id'
 
-        for p in policy_list:
-            plcy_no = p.get('plcyNo')
+class Favorite_policy_View(generics.GenericAPIView):
+    #관심정책
+    permission_classes = [permissions.IsAuthenticated]
 
-            #중복방지 - DB에 이미 정책명이 존재하면 스킵 
-            if Policy.objects.filter(plcyNo=plcy_no).exists():
-                skipped += 1
-                continue
+    def post(self, request, *args, **kwargs):
+        policy_id = kwargs.get("policy_id")
+        policy = get_object_or_404(Policy, id=policy_id)
+        serializer = FavoriteSerializer(data={})
+        if serializer.is_valid(raise_exception=True):
+            serializer.save(user=request.user, policy=policy)
+            return Response(status = status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+    def delete(self, request, *args, **kwargs):
+        policy_id = kwargs.get("policy_id")
+        policy = get_object_or_404(Policy, id=policy_id)
+        favorite = get_object_or_404(Favorite_policy, user = request.user, policy = policy)
+        favorite.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
-            try:
-                Policy.objects.create(
-                    plcyNo=plcy_no,
-                    plcyNm=p.get('plcyNm', ''),
-                    plcyKywdNm=p.get('plcyKywdNm', ''),
-                    plcySprtCn=p.get('plcySprtCn', ''),
-                    aplyPrdSeCd=p.get('aplyPrdSeCd', ''),
-                    bizPrdSeCd=p.get('bizPrdSeCd', ''),
-                    bizPrdBgngYmd=p.get('bizPrdBgngYmd', ''),
-                    bizPrdEndYmd=p.get('bizPrdEndYmd', ''),
-                    bizPrdEtcCn=p.get('bizPrdEtcCn', ''),
-                    plcyAplyMthdCn=p.get('plcyAplyMthdCn', ''),
-                    srngMthdCn=p.get('srngMthdCn', ''),
-                    aplyUrlAddr=p.get('aplyUrlAddr', ''),
-                    sbmsnDcmntCn=p.get('sbmsnDcmntCn', ''),
-                    etcMttrCn=p.get('etcMttrCn', ''),
-                    sprtTrgtMinAge = to_int_or_none(p.get('sprtTrgtMinAge')),
-                    sprtTrgtMaxAge = to_int_or_none(p.get('sprtTrgtMaxAge')),
-                    sprtTrgtAgeLmtYn=p.get('sprtTrgtAgeLmtYn', ''),
-                    mrgSttsCd=p.get('mrgSttsCd', ''),
-                    earnCndSeCd=p.get('earnCndSeCd', ''),
-                    earnMinAmt = to_int_or_none(p.get('earnMinAmt')),
-                    earnMaxAmt = to_int_or_none(p.get('earnMaxAmt')),
-                    earnEtcCn=p.get('earnEtcCn', ''),
-                    addAplyQlfcCndCn=p.get('addAplyQlfcCndCn', ''),
-                    rgtrInstCd=p.get('rgtrInstCd', ''),
-                    rgtrInstCdNm=p.get('rgtrInstCdNm', ''),
-                    zipCd=p.get('zipCd', ''),
-                    plcyMajorCd=p.get('plcyMajorCd', ''),
-                    jobCd=p.get('jobCd', ''),
-                    schoolCd=p.get('schoolCd', ''),
-                )
-                saved += 1
-            except Exception as e:
-                print(f"에러 발생 (plcyNo={plcy_no}): {e}")
-                continue
-
-        print(f"{page}페이지 처리 완료. 저장: {saved}, 건너뜀: {skipped}")
-        page += 1
-
-    return JsonResponse({
-        'result': f"{saved}개 저장 완료, {skipped}개 중복으로 건너뜀"
-    })
-
+class Favorite_policy_list_View(generics.ListAPIView):
+    # 마이페이지
+    permission_classes = [permissions.IsAuthenticated]
+    serializer_class = FavoriteListSerializer
+    pagination_class = PageNumberPagination
+    
+    def get_queryset(self):
+        return Policy.objects.filter(
+            id__in=Favorite_policy.objects.filter(user=self.request.user).values_list('policy_id', flat=True)
+        )

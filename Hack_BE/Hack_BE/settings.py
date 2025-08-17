@@ -14,10 +14,6 @@ from pathlib import Path
 from decouple import config
 from datetime import timedelta
 
-#영서
-import pymysql
-pymysql.install_as_MySQLdb()
-
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -61,7 +57,6 @@ INSTALLED_APPS = [
     'accounts',
     'policy',
     'profiles',
-
 ]
 
 MIDDLEWARE = [
@@ -100,8 +95,12 @@ WSGI_APPLICATION = 'Hack_BE.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': config('DJANGO_DB_ENGINE'),
+        'NAME': config('DJANGO_DB_NAME'),
+        'USER': config('DJANGO_DB_USER'),
+        'PASSWORD': config('DJANGO_DB_PASSWORD'),
+        'HOST': config('DJANGO_DB_HOST'),
+        'PORT': config('DJANGO_DB_PORT'),
     }
 }
 
@@ -192,12 +191,15 @@ REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework_simplejwt.authentication.JWTAuthentication',
     ),
+    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
+    'PAGE_SIZE': 10
+    # 페이지네이션
 }
 
 
 SIMPLE_JWT = {
-    'ACCESS_TOKEN_LIFETIME': timedelta(hours=1), # 액세스 토큰의 유효기간
-    'REFRESH_TOKEN_LIFETIME': timedelta(days=1), # 리프레시 토큰의 유효기간
+    'ACCESS_TOKEN_LIFETIME': timedelta(days=10), # 액세스 토큰의 유효기간    # 배포할때 다시 수정(hours=1)
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=10), # 리프레시 토큰의 유효기간    # days=1
     'ROTATE_REFRESH_TOKENS': False,
     'BLACKLIST_AFTER_ROTATION': True,
     'AUTH_HEADER_TYPES': ('Bearer',),
@@ -210,6 +212,7 @@ SIMPLE_JWT = {
     'TOKEN_USER_CLASS': 'rest_framework_simplejwt.models.TokenUser',
 }
 
+ACCOUNT_USER_MODEL_EMAIL_FIELD = None
 ACCOUNT_EMAIL_VERIFICATION = 'none'
 ACCOUNT_EMAIL_REQUIRED = False
 ACCOUNT_SIGNUP_FIELDS = ['username*', 'password1*', 'password2*'] #이메일 제거 
