@@ -197,8 +197,8 @@ REST_FRAMEWORK = {
 
 
 SIMPLE_JWT = {
-    'ACCESS_TOKEN_LIFETIME': timedelta(hours=1), # 액세스 토큰의 유효기간
-    'REFRESH_TOKEN_LIFETIME': timedelta(days=1), # 리프레시 토큰의 유효기간
+    'ACCESS_TOKEN_LIFETIME': timedelta(days=10), # 액세스 토큰의 유효기간    # 배포할때 다시 수정(hours=1)
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=10), # 리프레시 토큰의 유효기간    # days=1
     'ROTATE_REFRESH_TOKENS': False,
     'BLACKLIST_AFTER_ROTATION': True,
     'AUTH_HEADER_TYPES': ('Bearer',),
@@ -211,6 +211,7 @@ SIMPLE_JWT = {
     'TOKEN_USER_CLASS': 'rest_framework_simplejwt.models.TokenUser',
 }
 
+ACCOUNT_USER_MODEL_EMAIL_FIELD = None
 ACCOUNT_EMAIL_VERIFICATION = 'none'
 ACCOUNT_EMAIL_REQUIRED = False
 ACCOUNT_SIGNUP_FIELDS = ['username*', 'password1*', 'password2*'] #이메일 제거 
