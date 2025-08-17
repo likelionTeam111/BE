@@ -56,7 +56,6 @@ INSTALLED_APPS = [
     # 앱 목록
     'accounts',
     'policy',
-    'profiles',
 ]
 
 MIDDLEWARE = [
