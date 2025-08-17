@@ -1,7 +1,6 @@
 from langchain_core.documents import Document
 from langchain_core.document_loaders import BaseLoader
 from policy.models import Policy
-
 def _get_display(obj, field):
     """enum 필드면 get_FOO_display() 호출, 아니면 ''"""
     method = f"get_{field}_display"
@@ -42,7 +41,7 @@ def build_policy_text(p: "Policy") -> str:
     _add_part(parts, "등록기관", p.rgtrInstCdNm)
 
     # 요건 필드
-    _add_part(parts, "나이 요건", f"{_get_display(p, 'sprtTrgtAgeLmtYn')} or {num_data(p.sprtTrgtMinAge)} ~ {num_data(p.sprtTrgtMaxAge)}")
+    _add_part(parts, "나이 요건", p.sprtTrgtAgeLmtYn if p.sprtTrgtAgeLmtYn == "N" else f"{num_data(p.sprtTrgtMinAge)} ~ {num_data(p.sprtTrgtMaxAge)}")
     _add_part(parts, "결혼 요건", _get_display(p, "mrgSttsCd"))
     _add_part(parts, "소득 요건", f"{_get_display(p, 'earnCndSeCd')}" if _get_display(p, 'earnCndSeCd') == "무관" else f"{num_data(p.earnMinAmt)}~{num_data(p.earnMaxAmt)} or {p.earnEtcCn}")
     _add_part(parts, "전공 요건", _get_display(p, "plcyMajorCd"))
@@ -53,6 +52,19 @@ def build_policy_text(p: "Policy") -> str:
     # 기타 필드
     _add_part(parts,"가신청 자격조건", p.addAplyQlfcCndCn)
     _add_part(parts,"참여 제안 대상 내용", p.ptcpPrpTrgtCn)
+
+    return ", ".join(parts)
+
+def build_simple_policy_text(p: "Policy") -> str:
+    parts = []
+
+    # 기본 필드
+    _add_part(parts, "정책명", p.plcyNm)
+    _add_part(parts, "키워드", f"{p.plcyKywdNm}, {p.lclsfNm}, {p.mclsfNm}")
+    _add_part(parts, "제공방법", _get_display(p, "plcyPvsnMthdCd"))
+    _add_part(parts, "정책 설명", f"{p.plcyExplnCn}, {p.plcySprtCn}, {p.etcMttrCn}, {_get_display(p, 'plcyPvsnMthdCd')}")
+    _add_part(parts, "신청 방법", p.plcyAplyMthdCn)
+    _add_part(parts, "신청 서류", p.sbmsnDcmntCn)
 
     return ", ".join(parts)
 
@@ -69,7 +81,7 @@ class PolicyLoader(BaseLoader):
                     metadata={
                         "정책명": p.plcyNm,
                         "키워드": f"{p.plcyKywdNm}, {p.lclsfNm}, {p.mclsfNm}",
-                        "source": f"{p.aplyUrlAddr} or {p.refUrlAddr} or {p.refUrlAddr2}"
+                        "source": f"{p.aplyUrlAddr} or {p.refUrlAddr1} or {p.refUrlAddr2}"
                     }
                 )
             )

@@ -1,56 +1,82 @@
-from django.shortcuts import render
-from rest_framework.viewsets import ModelViewSet
-# Create your views here.
-
 from .models import *
 from .serializers import *
 
-from rest_framework import generics
+from rest_framework import generics, permissions
 from rest_framework.pagination import PageNumberPagination
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework import status
+from django.shortcuts import get_object_or_404
 
 # chat봇 관련
-import json
 from uuid import uuid4
-
-from django.http import JsonResponse
-from django.views import View
-from django.utils.decorators import method_decorator
-from django.views.decorators.csrf import csrf_exempt
 from .langchain import ai_chat
     
-@method_decorator(csrf_exempt, name="dispatch")  # 운영에선 제거하고 CSRF 헤더/쿠키 사용 권장
-class Chat(View):
+class ChatView(APIView):
+    def post(self, request, *args, **kwargs):
+        serializer = ChatRequestSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        message = serializer.validated_data["message"].strip()
 
-    def post(self, request):
-        # JSON 파싱
-        try:
-            payload = json.loads(request.body.decode("utf-8"))
-        except Exception:
-            return JsonResponse({"error": "invalid json"}, status=400)
-
-        # message
-        message = payload.get("message").strip()
-        if not message:
-            return JsonResponse({"error": "message is required"}, status=400)
-
-        # thread_id
-        thread_id = (
-            payload.get("thread_id")
-            or getattr(getattr(request, "session", None), "session_key", None)
-            or str(uuid4())
-        )
-
+        thread_id = serializer.validated_data.get("thread_id") or str(uuid4())
+                    # request.COOKIES.get("thread_id") or \
+                    # getattr(getattr(request, "session", None), "session_key", None) or \
+                    
         answer = ai_chat(message, thread_id)
-        resp = JsonResponse(
-            {"answer": answer, "thread_id": thread_id},
-            json_dumps_params={"ensure_ascii": False},
-        )
-        # 선택: thread_id를 쿠키로 내려 프론트가 재사용하게
-        if "thread_id" not in payload:
-            resp.set_cookie("thread_id", thread_id, samesite="Lax")
+
+        resp_serializer = ChatResponseSerializer({
+            "answer": answer,
+            "thread_id": thread_id
+        })
+
+        resp = Response(resp_serializer.data, status=status.HTTP_200_OK)
         return resp
-        
+    
 class Policy_list(generics.ListAPIView):
+    # 참고용
     queryset = Policy.objects.all()
     serializer_class = PolicySerializer
     pagination_class = PageNumberPagination
+
+class Brief_policy_info(generics.RetrieveAPIView):
+    queryset = Policy.objects.all()
+    serializer_class = BriefPolicySerializer
+    lookup_field = 'id'
+    lookup_url_kwarg = 'id'
+
+class Detail_policy_info(generics.RetrieveAPIView):
+    queryset = Policy.objects.all()
+    serializer_class = DetailPolicySerializer
+    lookup_field = 'id'
+    lookup_url_kwarg = 'id'
+
+class Favorite_policy_View(generics.GenericAPIView):
+    #관심정책
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self, request, *args, **kwargs):
+        policy_id = kwargs.get("policy_id")
+        policy = get_object_or_404(Policy, id=policy_id)
+        serializer = FavoriteSerializer(data={})
+        if serializer.is_valid(raise_exception=True):
+            serializer.save(user=request.user, policy=policy)
+            return Response(status = status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+    def delete(self, request, *args, **kwargs):
+        policy_id = kwargs.get("policy_id")
+        policy = get_object_or_404(Policy, id=policy_id)
+        favorite = get_object_or_404(Favorite_policy, user = request.user, policy = policy)
+        favorite.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+class Favorite_policy_list_View(generics.ListAPIView):
+    # 마이페이지
+    permission_classes = [permissions.IsAuthenticated]
+    serializer_class = FavoriteListSerializer
+    pagination_class = PageNumberPagination
+    
+    def get_queryset(self):
+        return Policy.objects.filter(
+            id__in=Favorite_policy.objects.filter(user=self.request.user).values_list('policy_id', flat=True)
+        )

@@ -1,5 +1,6 @@
 from django.db import models
 from pgvector.django import VectorField
+from accounts.models import CustomUser
 
 class Policy(models.Model):
     # ENUM choices
@@ -81,11 +82,11 @@ class Policy(models.Model):
     ("0014009", "기타"),
     ("0014010", "제한없음"),
     ]
-
     # 정책 개요
     plcyNo = models.CharField(max_length=100, null=True, blank=True)  # 정책번호
     plcyNm = models.CharField(max_length=100, null=True, blank=True)  # 정책명
     
+    aiSummary  = models.TextField(null=True, blank=True)   # AI 3줄 요약
     plcyKywdNm = models.CharField(max_length=100, null=True, blank=True)  # 정책 키워드명    
     lclsfNm = models.CharField(max_length=50, null=True, blank=True)  # 정책 대분류명
     mclsfNm = models.CharField(max_length=50, null=True, blank=True)  # 정책 중분류명
@@ -137,3 +138,12 @@ class Policy(models.Model):
 
     def __str__(self):
         return self.plcyNm
+
+class Favorite_policy(models.Model):
+    user = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='favorite_by')
+    policy = models.ForeignKey(Policy, on_delete=models.CASCADE, related_name='favorite_policy')
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        # 중복방지
+        constraints = [models.UniqueConstraint(fields=['user', 'policy'], name='uniq_user_policy')]
