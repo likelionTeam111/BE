@@ -163,8 +163,8 @@ REST_AUTH = {
     'PASSWORD_RESET_CONFIRM_SERIALIZER': 'dj_rest_auth.serializers.PasswordResetConfirmSerializer',
     'PASSWORD_CHANGE_SERIALIZER': 'dj_rest_auth.serializers.PasswordChangeSerializer',
 
-    #'REGISTER_SERIALIZER': 'accounts.serializers.CustomRegisterSerializer',    # register 커스텀
-    'REGISTER_SERIALIZER': 'accounts.serializers.CustomRegisterSerializer',
+    #'REGISTER_SERIALIZER': 'accounts.serializers.CustomRegisterSerializer',    # 추후 register 커스텀
+    'REGISTER_SERIALIZER': 'accounts.serializers.CustomRegisterSerializer', #CustomRegisterSerializer에서 이메일삭제
     'REGISTER_PERMISSION_CLASSES': ('rest_framework.permissions.AllowAny',),
 
     'TOKEN_MODEL': 'rest_framework.authtoken.models.Token',

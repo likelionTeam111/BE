@@ -17,8 +17,8 @@ class Major(models.Model):
 
 class Profile(models.Model):
     user = models.OneToOneField(CustomUser, on_delete=models.CASCADE,related_name="profile")
-    special = models.ManyToManyField(Special,through="Profile_Special")
-    majors = models.ManyToManyField(Major, through="Profile_Major")
+    special = models.ManyToManyField(Special,through="Profile_Special",related_name='profiles')
+    majors = models.ManyToManyField(Major, through="Profile_Major", related_name='profiles')
 
     #Choice
     MARRY_CHOICES = [
@@ -69,7 +69,7 @@ class Profile_Special(models.Model):
 
 class Profile_Major(models.Model):
     profile_id = models.ForeignKey(Profile,on_delete=models.CASCADE)
-    speical_id = models.ForeignKey(Special,on_delete=models.CASCADE)
+    speical_id = models.ForeignKey(Major,on_delete=models.CASCADE)
 
 
 

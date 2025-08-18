@@ -33,6 +33,7 @@ class CustomRegisterSerializer(RegisterSerializer):
 class CustomUserDetailSerializer(serializers.ModelSerializer):
     class Meta:
         model = CustomUser
+        email = None #이메일 필드 삭제 
         fields = ['id', 'username', 'password', 'nickname']
 
 class CustomLoginSerializer(LoginSerializer):
