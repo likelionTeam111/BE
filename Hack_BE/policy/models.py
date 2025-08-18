@@ -134,7 +134,6 @@ class Policy(models.Model):
     inqCnt = models.CharField(max_length=50, null=True, blank=True)  # 조회수
     frstRegDt = models.TextField(null=True, blank=True)  # 최초 등록일시
     lastMdfcnDt = models.TextField(null=True, blank=True)  # 최종 수정일시
-    embedding = VectorField(dimensions=1024, null=True, blank=True)
 
     def __str__(self):
         return self.plcyNm
