@@ -57,6 +57,7 @@ INSTALLED_APPS = [
     # 앱 목록
     'accounts',
     'policy',
+    'profiles', #추가 
 ]
 
 MIDDLEWARE = [
@@ -95,12 +96,8 @@ WSGI_APPLICATION = 'Hack_BE.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': config('DJANGO_DB_ENGINE'),
-        'NAME': config('DJANGO_DB_NAME'),
-        'USER': config('DJANGO_DB_USER'),
-        'PASSWORD': config('DJANGO_DB_PASSWORD'),
-        'HOST': config('DJANGO_DB_HOST'),
-        'PORT': config('DJANGO_DB_PORT'),
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / 'db.sqlite3',
     }
 }
 
