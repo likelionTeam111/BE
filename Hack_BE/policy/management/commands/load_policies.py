@@ -82,38 +82,38 @@ class Command(BaseCommand):
                     }
                 )
 
-                # AI 3줄 요약 추가
-                doc = Document(
-                    page_content=build_simple_policy_text(obj),
-                    metadata={
-                        "정책명": obj.plcyNm,
-                        "키워드": f"{obj.plcyKywdNm}, {obj.lclsfNm}, {obj.mclsfNm}",
-                        "source": f"{obj.aplyUrlAddr} or {obj.refUrlAddr1} or {obj.refUrlAddr2}"
-                    }
-                )
-                
-    
-                system = "너는 대한민국 청년정책을 간결하게 요약하는 도우미야."
-                user = f"""
-                        아래 정책 내용을 3줄 요약해.
-                        각 줄은 '대상:', '지원 내용:', '신청방법:' 로 시작해야 해.
-                        줄을 마칠 때는 단어로 끝내줘
-                        불필요한 말은 금지하고, 딱 3줄만 출력해.
-
-                        정책명 : {doc.metadata.get("정책명","")}
-                        내용: {doc.page_content}
-                        참고 : {doc.metadata}
-                        """
-                resp = client.responses.create(
-                    model="gpt-4o-mini",
-                    temperature=0.2,
-                    input=[{"role":"system","content":system},
-                        {"role":"user","content":user}],
-                )
-                obj.aiSummary = resp.output_text.strip()
-                obj.save(update_fields=["aiSummary"])
-                
                 if created:
+                    # AI 3줄 요약 추가
+                    doc = Document(
+                        page_content=build_simple_policy_text(obj),
+                        metadata={
+                            "정책명": obj.plcyNm,
+                            "키워드": f"{obj.plcyKywdNm}, {obj.lclsfNm}, {obj.mclsfNm}",
+                            "source": f"{obj.aplyUrlAddr} or {obj.refUrlAddr1} or {obj.refUrlAddr2}"
+                        }
+                    )
+                    
+        
+                    system = "너는 대한민국 청년정책을 간결하게 요약하는 도우미야."
+                    user = f"""
+                            아래 정책 내용을 3줄 요약해.
+                            각 줄은 '대상:', '지원 내용:', '신청방법:' 로 시작해야 해.
+                            줄을 마칠 때는 단어로 끝내줘
+                            불필요한 말은 금지하고, 딱 3줄만 출력해.
+
+                            정책명 : {doc.metadata.get("정책명","")}
+                            내용: {doc.page_content}
+                            참고 : {doc.metadata}
+                            """
+                    resp = client.responses.create(
+                        model="gpt-4o-mini",
+                        temperature=0.2,
+                        input=[{"role":"system","content":system},
+                            {"role":"user","content":user}],
+                    )
+                    obj.aiSummary = resp.output_text.strip()
+                    obj.save(update_fields=["aiSummary"])
+                    
                     saved += 1
                 else:
                     updated += 1

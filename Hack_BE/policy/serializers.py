@@ -44,11 +44,11 @@ class PolicyInfoSerializer(serializers.ModelSerializer):
         model = Policy
         fields = [
             # 개요
-            'plcyNm', "plcyExplnCn",  'aiSummary', 'is_favorited', 'addr', "plcyKywdNm"
-            # 지원내용
-            "about_benefit",
+            'plcyNm', "plcyExplnCn",  'aiSummary', 'is_favorited', 'addr', "plcyKywdNm",
             # 사업기간
             "bizPrd",
+            # 지원내용
+            "about_benefit",
             # 신청관련
             "aplyYmd", "sbmsnDcmntCn", "plcyAplyMthdCn", "srngMthdCn",  
             #요건
