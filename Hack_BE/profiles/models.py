@@ -7,20 +7,21 @@ User = settings.AUTH_USER_MODEL
 
 
 class Special(models.Model):
-    code = models.CharField(max_length=30)
-    label = models.CharField(max_length=100)
+    code = models.CharField(max_length=30,blank=True)
+    label = models.CharField(max_length=100,blank=True)
 
 class Major(models.Model):
-    code = models.CharField(max_length=30)
-    label = models.CharField(max_length=100)
+    code = models.CharField(max_length=30,blank=True)
+    label = models.CharField(max_length=100,blank=True)
 
 
 class Profile(models.Model):
     user = models.OneToOneField(CustomUser, on_delete=models.CASCADE,related_name="profile")
+
     special = models.ManyToManyField(Special,through="Profile_Special",related_name='profiles')
     majors = models.ManyToManyField(Major, through="Profile_Major", related_name='profiles')
 
-    #Choices
+    #Choice
     MARRY_CHOICES = [
         ("0055001", "기혼"),
         ("0055002", "미혼"),
@@ -53,11 +54,12 @@ class Profile(models.Model):
         ("0013010", "제한없음"),
     ]
 
+
     age = models.IntegerField(null=True,blank=True)
     region = models.CharField(max_length=30,blank=True)
     marry = models.CharField(max_length=7,choices=MARRY_CHOICES,null=True,blank=True)
     max_income = models.IntegerField(null=True,blank=True)
-    max_income = models.IntegerField(null=True,blank=True)
+    min_income = models.IntegerField(null=True,blank=True)
     graduate = models.CharField(max_length=7,choices=GRAUDATE_CHOICES,null=True,blank=True)
     employment = models.CharField(max_length=7,choices=EMPLOYMENT_CHOICES,null=True,blank=True)
     goal = models.TextField(blank=True)
@@ -67,11 +69,15 @@ class Profile_Special(models.Model):
     profile_id = models.ForeignKey(Profile,on_delete=models.CASCADE)
     speical_id = models.ForeignKey(Special,on_delete=models.CASCADE)
 
+    class Meta:
+        unique_together = ("profile_id", "special_id")
+
 class Profile_Major(models.Model):
     profile_id = models.ForeignKey(Profile,on_delete=models.CASCADE)
-    speical_id = models.ForeignKey(Major,on_delete=models.CASCADE)
+    category_id = models.ForeignKey(Major,on_delete=models.CASCADE)
 
-
+    class Meta:
+        unique_together = ("profile_id", "category_id")
 
     def __str__(self):
         return f"{self.user.username}님의 Profile"

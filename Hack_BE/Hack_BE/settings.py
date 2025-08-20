@@ -57,6 +57,7 @@ INSTALLED_APPS = [
     # 앱 목록
     'accounts',
     'policy',
+    'profiles', #추가 
 ]
 
 MIDDLEWARE = [
@@ -103,6 +104,7 @@ DATABASES = {
         'PORT': config('DJANGO_DB_PORT'),
     }
 }
+
 
 
 # Password validation
