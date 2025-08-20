@@ -4,7 +4,6 @@ from rest_framework.response import Response
 from .models import *
 
 
-
 class MajorSerializer(serializers.ModelSerializer):
     class Meta:
         model = Major

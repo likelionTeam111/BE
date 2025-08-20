@@ -33,8 +33,6 @@ class MyPageView(APIView):
 
         
 
-
-
 class EnrollView(APIView):
     permission_classes = [IsAuthenticated]
 
