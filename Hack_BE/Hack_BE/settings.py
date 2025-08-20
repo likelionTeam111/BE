@@ -241,3 +241,8 @@ SPECTACULAR_SETTINGS = {
 
     'SWAGGER_UI_DIST': '//unpkg.com/swagger-ui-dist@3.38.0',
 }
+
+try:
+    from .local_settings import *
+except ImportError:
+    pass

@@ -21,7 +21,6 @@ class Profile(models.Model):
     special = models.ManyToManyField(Special,through="Profile_Special",related_name='profiles')
     majors = models.ManyToManyField(Major, through="Profile_Major", related_name='profiles')
 
-
     #Choice
     MARRY_CHOICES = [
         ("0055001", "기혼"),
