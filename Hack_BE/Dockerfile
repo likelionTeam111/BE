@@ -12,3 +12,6 @@ WORKDIR /app
 RUN pip install --upgrade pip
 RUN pip install -r requirements.txt
 COPY .env .
+
+# gunicorn 워커 수를 1개로 설정
+CMD ["gunicorn", "your_project.wsgi:application", "--bind", "0.0.0.0:8000", "--workers", "1"]
