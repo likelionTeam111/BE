@@ -1,16 +1,13 @@
-from rest_framework import status, permissions
 from rest_framework.permissions import IsAuthenticated
-from rest_framework import permissions, status
+from rest_framework import permissions, status, generics
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.pagination import PageNumberPagination
 from .models import Profile
 from .serializers import ProfileSerializer
 
-from policy.models import Favorite_policy, Policy
-from policy.serializers import FavoriteListSerializer
-from .models import Profile, Major, Special
-from accounts.models import CustomUser
+from .serializers import ProfileSerializer, RecommendSerializer
+from .recommend import recommend_by_onboarding
 
 
 class MyPageView(APIView):
@@ -29,7 +26,6 @@ class MyPageView(APIView):
         return Response(
             {
                 "profile": profile_data,
-                
             },
             status=status.HTTP_200_OK
         )
@@ -65,4 +61,18 @@ class EnrollView(APIView):
             serializer.save()  # LabelManyField가 자동으로 M2M 처리
             return Response(serializer.data, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+class Profile_view(generics.RetrieveAPIView):
+    queryset = Profile.objects.all()
+    serializer_class = ProfileSerializer
+    lookup_field = 'user'
+    lookup_url_kwarg = 'id'
+
+class Recommend_view(generics.ListAPIView):
+    serializer_class = RecommendSerializer
+    pagination_class = PageNumberPagination
+    def get_queryset(self):
+        user = self.request.user
+        qs = recommend_by_onboarding(user)
+        return qs
 
