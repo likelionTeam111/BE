@@ -48,7 +48,7 @@ class PolicyInfoSerializer(serializers.ModelSerializer):
             # 사업기간
             "bizPrd",
             # 지원내용
-            "about_benefit",
+            "about_benefit", 'sprtSclCnt'
             # 신청관련
             "aplyYmd", "sbmsnDcmntCn", "plcyAplyMthdCn", "srngMthdCn",  
             #요건
