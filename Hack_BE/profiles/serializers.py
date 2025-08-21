@@ -1,6 +1,6 @@
 from rest_framework import serializers
-from rest_framework.response import Response
 from .models import *
+from policy.models import Policy
 
 class DisplayChoiceField(serializers.ChoiceField):
 
@@ -94,3 +94,8 @@ class ProfileSerializer(serializers.ModelSerializer):
                 profile_data.append(value)
 
         return {"profile_data": profile_data}
+    
+class RecommendSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Policy
+        fields = ['id', 'plcyNm', 'plcyKywdNm', 'lclsfNm', 'mclsfNm']

@@ -1,7 +1,5 @@
 from django.urls import path
-from . import views
-from .views import EnrollView,MyPageView
-from .views import EnrollView, Recommend_view, Profile_view
+from .views import EnrollView, MyPageView, Recommend_view, Profile_view
 
 
 app_name = 'profiles'

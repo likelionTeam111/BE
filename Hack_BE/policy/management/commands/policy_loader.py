@@ -2,14 +2,17 @@ from langchain_core.documents import Document
 from langchain_core.document_loaders import BaseLoader
 from policy.models import Policy
 def _get_display(obj, field):
+    fields = field.split(",")
+    labels = []
     """enum 필드면 get_FOO_display() 호출, 아니면 ''"""
-    method = f"get_{field}_display"
-    if hasattr(obj, method):
-        try:
-            return getattr(obj, method)() or ""
-        except Exception:
-            return ""
-    return ""
+    for code in fields:
+        method = f"get_{code}_display"
+        if hasattr(obj, method):
+            try:
+                labels.append(getattr(obj, method)())
+            except Exception:
+                ""
+    return ", ".join(labels)
 
 def _add_part(parts, label, value):
     text = str(value).strip()
