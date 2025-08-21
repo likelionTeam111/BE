@@ -1,104 +1,96 @@
 from rest_framework import serializers
-from accounts.models import CustomUser
-from policy.models import Policy
 from rest_framework.response import Response
-from rest_framework.views import APIView
 from .models import *
 
+class DisplayChoiceField(serializers.ChoiceField):
 
-class MajorSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Major
-        fields = ("code", "label")
+    # DB에 저장된 코드 → 응답 라벨로 변환
+    def to_representation(self, value):
+        if value in ("", None):
+            return None
+        return self._choices.get(value, value)
+    
+    # 입력 라벨 → 코드 변환
+    def to_internal_value(self, data):
+        for key, val in self._choices.items():
+            if val == data:
+                return key
+        # 라벨이 choices에 없으면 validation error 발생
+        self.fail("invalid_choice", input=data)
 
-class SpecialSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Special
-        fields = ("code", "label")
+
+class LabelManyField(serializers.SlugRelatedField):
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if self.queryset.model.__name__ == "Major":
+            choices = dict(MAJOR_CHOICES)
+        elif self.queryset.model.__name__ == "Special":
+            choices = dict(SBIZ_CHOICES)
+        else:
+            choices = {}
+
+        self.code_to_label = choices
+        self.label_to_code = {v: k for k, v in choices.items()}
+
+    def to_internal_value(self, data):
+        # 비어있으면 빈 리스트 반환
+        if data in (None, "", []):
+            return []  
+        label = str(data).strip()
+        code = self.label_to_code.get(label)
+        if not code:
+            self.fail("invalid_choice", input=data)
+        try:
+            return self.get_queryset().get(code=code)
+        except self.get_queryset().model.DoesNotExist:
+            self.fail("not_found", input=data)
+
+    def to_representation(self, obj):
+        return self.code_to_label.get(getattr(obj, "code", None), getattr(obj, "code", None))
+
+    default_error_messages = {
+        "invalid_choice": '"{input}"은(는) 허용된 라벨이 아닙니다.',
+        "not_found": '"{input}" 라벨에 해당하는 항목을 찾을 수 없습니다.',
+    }
 
 
 class ProfileSerializer(serializers.ModelSerializer):
-    major = serializers.SlugRelatedField(
-        many = True,
-        slug_field = 'code',
-        queryset=Major.objects.all()
-    )
+    # 단일 choice 필드
+    marry_code = DisplayChoiceField(choices=MARRY_CHOICES, required=False)
+    graduate_code = DisplayChoiceField(choices=GRADUATE_CHOICES, required=False)
+    employment_code = DisplayChoiceField(choices=EMPLOYMENT_CHOICES, required=False)
+    max_income = serializers.IntegerField(required=False, allow_null=True)
+    min_income = serializers.IntegerField(required=False, allow_null=True)
 
-    special = serializers.SlugRelatedField(
-        many=True,
-        slug_field="code",
-        queryset=Special.objects.all()
-    )
+    # M2M 필드: 라벨 입력, 코드 저장
+    majors_code = LabelManyField(many=True, slug_field="code",queryset=Major.objects.all(),required=False,allow_empty=True)
+    special_code = LabelManyField(many=True, slug_field="code",queryset=Special.objects.all(),required=False,allow_empty=True)
 
     class Meta:
         model = Profile
-        fields = ["id", "age", "min_income", "max_income",
-            "marry", "graduate", "employment", "major", "special",
+        fields = [
+            "age",
+            "region",
+            "marry_code",
+            "max_income", 
+            "min_income",
+            "graduate_code",
+            "employment_code",
+            "goal",
+            "majors_code",
+            "special_code",
         ]
 
-    # def create(self, validated_data):
-    #     major_data = validated_data.pop('major', [])
-    #     special_data = validated_data.pop('special', [])
-        
-    #     profile = Profile.objects.create(**validated_data)
-        
-    #     profile.major.set(major_data)
-    #     profile.special.set(special_data)
-        
-    #     return profile
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+        profile_data = []
 
-    # def update(self, instance, validated_data):
-    #     major_data = validated_data.pop('major', [])
-    #     special_data = validated_data.pop('special', [])
+        for key, value in data.items():
+            if isinstance(value, list):
+                if value:  # 빈 리스트가 아니면
+                    profile_data.append(value)  # flatten 하지 않고 그대로 추가
+            elif value not in (None, ""):
+                profile_data.append(value)
 
-    #     for attr, value in validated_data.items():
-    #         setattr(instance, attr, value)
-        
-    #     instance.major.set(major_data)
-    #     instance.special.set(special_data)
-
-    #     instance.save()
-    #     return instance
-
-# class ProfileSerializer(serializers.ModelSerializer):
-#     marry_display = serializers.SerializerMethodField()
-#     graduate_display = serializers.SerializerMethodField()
-#     employment_display = serializers.SerializerMethodField()
-
-#     majors = serializers.SlugRelatedField(
-#         many = True,
-#         write_only=True,
-#         slug_field = 'code',
-#         queryset=Major.objects.all()
-#     )
-
-#     specials = serializers.SlugRelatedField(
-#         many=True,
-#         write_only=True,
-#         slug_field="code",
-#         queryset=Special.objects.all()
-#     )
-
-#     majors_display = serializers.SerializerMethodField()
-#     special_display = serializers.SerializerMethodField()
-
-#     class Meta:
-#         model = Profile
-#         fields = [
-#         'age', 'region', 'marry', 'marry_display',
-#         'min_income', 'max_income', 'graduate', 'graduate_display',
-#         'employment', 'employment_display', 'goal',
-#         'majors', 'majors_display', 'specials', 'special_display',
-#     ]
-    
-#     def get_marry_display(self,obj):return obj.get_marry_display()
-#     def get_graduate_display(self, obj):return obj.get_graduate_display()
-#     def get_employment_display(self, obj):return obj.get_employment_display()
-
-#     def get_special_display(self, obj):return [special.label for special in obj.special.all()]
-#     def get_majors_display(self,obj):return [major.label for major in obj.majors.all()]
-
-class RecommendSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Policy
-        fields = ['id', 'plcyNm', 'plcyKywdNm', 'lclsfNm', 'mclsfNm']
+        return {"profile_data": profile_data}

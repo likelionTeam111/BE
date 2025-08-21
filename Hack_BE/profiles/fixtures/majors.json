@@ -1,0 +1,11 @@
+[
+  {"model": "profiles.major", "pk": 1, "fields": {"code": "0011001"}},
+  {"model": "profiles.major", "pk": 2, "fields": {"code": "0011002"}},
+  {"model": "profiles.major", "pk": 3, "fields": {"code": "0011003"}},
+  {"model": "profiles.major", "pk": 4, "fields": {"code": "0011004"}},
+  {"model": "profiles.major", "pk": 5, "fields": {"code": "0011005"}},
+  {"model": "profiles.major", "pk": 6, "fields": {"code": "0011006"}},
+  {"model": "profiles.major", "pk": 7, "fields": {"code": "0011007"}},
+  {"model": "profiles.major", "pk": 8, "fields": {"code": "0011008"}},
+  {"model": "profiles.major", "pk": 9, "fields": {"code": "0011009"}}
+]

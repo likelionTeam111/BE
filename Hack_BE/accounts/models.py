@@ -3,8 +3,9 @@ from django.contrib.auth.models import AbstractUser
 # Create your models here.
 
 class CustomUser(AbstractUser):
+
+  #email = None
   REQUIRED_FIELDS = []
-  email = None
   
   nickname = models.CharField(max_length=100)
   age = models.CharField(max_length=20)
