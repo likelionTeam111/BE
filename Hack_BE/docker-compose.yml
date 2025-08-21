@@ -6,7 +6,7 @@ services:
         command: bash -c "gunicorn Hack_BE.wsgi:application -b 0.0.0.0:8000" # 서버 실행
         ports:
             - '8000:8000'
-        mem_limit: 2g
+        mem_limit: 8g
         restart: always
         volumes:
             - .:/app
