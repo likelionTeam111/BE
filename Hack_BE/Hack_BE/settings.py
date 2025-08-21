@@ -27,9 +27,9 @@ SECRET_KEY = config('SECRET_KEY')
 youth_api_key = config('youth_api_key') #수정
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['127.0.0.1', '3.38.168.59', 'youthassistant.store']
 
 
 # Application definition
@@ -61,6 +61,7 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -151,6 +152,7 @@ STATIC_URL = 'static/'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
+CSRF_TRUSTED_ORIGINS = ["https://youthassistant.store",]
 
 REST_AUTH = {
     #'LOGIN_SERIALIZER': 'dj_rest_auth.serializers.LoginSerializer', 
@@ -201,7 +203,7 @@ REST_FRAMEWORK = {
 
 
 SIMPLE_JWT = {
-    'ACCESS_TOKEN_LIFETIME': timedelta(days=10), # 액세스 토큰의 유효기간    # 배포할때 다시 수정(hours=1)
+    'ACCESS_TOKEN_LIFETIME': timedelta(hours=4), # 액세스 토큰의 유효기간    # 배포할때 다시 수정(hours=1)
     'REFRESH_TOKEN_LIFETIME': timedelta(days=10), # 리프레시 토큰의 유효기간    # days=1
     'ROTATE_REFRESH_TOKENS': False,
     'BLACKLIST_AFTER_ROTATION': True,
@@ -246,3 +248,11 @@ try:
     from .local_settings import *
 except ImportError:
     pass
+
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:3000",
+    "http://127.0.0.1:8000",
+    "https://youthassistant.store",
+]
+
+CORS_ALLOW_CREDENTIALS = True
