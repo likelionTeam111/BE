@@ -17,7 +17,7 @@ class Command(BaseCommand):
 
         # embedding model
         embeddings = HuggingFaceEmbeddings(
-            model_name="hgan/ko-sbert-nli",
+            model_name="jhgan/ko-sbert-nli",
             model_kwargs={"device": "cpu"},
             encode_kwargs={"normalize_embeddings": True},
             )
