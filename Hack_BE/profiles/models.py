@@ -69,15 +69,15 @@ class Profile_Special(models.Model):
     profile_id = models.ForeignKey(Profile,on_delete=models.CASCADE)
     speical_id = models.ForeignKey(Special,on_delete=models.CASCADE)
 
-    class Meta:
-        unique_together = ("profile_id", "special_id")
+    # class Meta:
+    #     unique_together = ("profile_id", "special_id")
 
 class Profile_Major(models.Model):
     profile_id = models.ForeignKey(Profile,on_delete=models.CASCADE)
     category_id = models.ForeignKey(Major,on_delete=models.CASCADE)
 
-    class Meta:
-        unique_together = ("profile_id", "category_id")
+    # class Meta:
+    #     unique_together = ("profile_id", "category_id")
 
     def __str__(self):
         return f"{self.user.username}님의 Profile"
