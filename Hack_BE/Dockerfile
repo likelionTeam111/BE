@@ -12,3 +12,5 @@ WORKDIR /app
 RUN pip install --upgrade pip
 RUN pip install -r requirements.txt
 COPY .env .
+
+gunicorn Hack_BE.wsgi:application --bind 0.0.0.0:8000 --workers 1 --timeout 120 --log-level info
