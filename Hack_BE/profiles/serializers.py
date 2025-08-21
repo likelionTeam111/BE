@@ -89,8 +89,8 @@ class ProfileSerializer(serializers.ModelSerializer):
 
         for key, value in data.items():
             if isinstance(value, list):
-                # 리스트라면 내부 요소 하나하나를 profile_data에 추가
-                profile_data.extend([v for v in value if v not in (None, "", [])])
+                if value:  # 빈 리스트가 아니면
+                    profile_data.append(value)  # flatten 하지 않고 그대로 추가
             elif value not in (None, ""):
                 profile_data.append(value)
 
