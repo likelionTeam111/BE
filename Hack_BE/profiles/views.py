@@ -16,6 +16,7 @@ class MyPageView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self,request):
+        # user = CustomUser.objects.first()  # 테스트용
         user = request.user
         
         try:
