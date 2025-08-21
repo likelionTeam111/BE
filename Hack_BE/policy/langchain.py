@@ -24,7 +24,7 @@ llm = ChatOpenAI(model="gpt-4o-mini", api_key=api_key)
 
 # embedding model
 embeddings = HuggingFaceEmbeddings(
-    model_name="hgan/ko-sbert-nli",
+    model_name="jhgan/ko-sbert-nli",
     model_kwargs={"device": "cpu"},
     encode_kwargs={"normalize_embeddings": True},
     )
