@@ -38,20 +38,21 @@ class EnrollView(APIView):
     def post(self, request):
         # user = CustomUser.objects.first()  # 테스트용
 
-        # 프로필 생성 또는 가져오기
-        profile, _ = Profile.objects.get_or_create(user=user)
-
-        # 기존 단일 필드 초기화
-        profile.age = None
-        profile.region = ""
-        profile.marry_code = None
-        profile.max_income = None
-        profile.min_income = None
-        profile.graduate_code = None
-        profile.employment_code = None
-        profile.goal = ""
-        profile.save()
-
+        user = request.user
+        profile, _ = Profile.objects.update_or_create(
+            user=user,
+            defaults={
+                "age":None,
+                "region":"",
+                "marry_code":None,
+                "max_income":None,
+                "min_income":None,
+                "graduate_code":None,
+                "employment_code":None,
+                "goal":"",
+            }
+        )
+                                                
         # ManyToMany 초기화
         profile.majors.clear()
         profile.special.clear()
