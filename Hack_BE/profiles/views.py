@@ -5,30 +5,39 @@ from rest_framework.views import APIView
 from rest_framework.pagination import PageNumberPagination
 from .models import Profile
 from .serializers import ProfileSerializer
+from django.shortcuts import get_object_or_404
 
 from .serializers import ProfileSerializer, RecommendSerializer
 from .recommend import recommend_by_onboarding
 
+class Profile_view(generics.RetrieveAPIView):
+    serializer_class = ProfileSerializer
 
-class MyPageView(APIView):
-    permission_classes = [IsAuthenticated]
+    def get_queryset(self):
+        return Profile.objects.select_related('user')
+    
+    def get_object(self):
+        return get_object_or_404(self.get_queryset(), user=self.request.user)
+    
+# class MyPageView(APIView):
+#     permission_classes = [IsAuthenticated]
 
-    def get(self,request):
-        # user = CustomUser.objects.first()  # 테스트용
-        user = request.user
+#     def get(self,request):
+#         # user = CustomUser.objects.first()  # 테스트용
+#         user = request.user
         
-        try:
-            profile = user.profile
-            profile_data = ProfileSerializer(profile).data
-        except Profile.DoesNotExist:
-            profile_data = None
+#         try:
+#             profile = user.profile
+#             profile_data = ProfileSerializer(profile).data
+#         except Profile.DoesNotExist:
+#             profile_data = None
 
-        return Response(
-            {
-                "profile": profile_data,
-            },
-            status=status.HTTP_200_OK
-        )
+#         return Response(
+#             {
+#                 "profile": profile_data,
+#             },
+#             status=status.HTTP_200_OK
+#         )
 
 
 class EnrollView(APIView):
@@ -52,8 +61,8 @@ class EnrollView(APIView):
         )
                                                 
         # ManyToMany 초기화
-        profile.majors.clear()
-        profile.special.clear()
+        profile.major_code.clear()
+        profile.special_code.clear()
 
         # serializer에 데이터 그대로 넘김
         serializer = ProfileSerializer(profile, data=request.data, partial=False)
@@ -61,12 +70,6 @@ class EnrollView(APIView):
             serializer.save()  # LabelManyField가 자동으로 M2M 처리
             return Response(serializer.data, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-    
-class Profile_view(generics.RetrieveAPIView):
-    queryset = Profile.objects.all()
-    serializer_class = ProfileSerializer
-    lookup_field = 'user'
-    lookup_url_kwarg = 'id'
 
 class Recommend_view(generics.ListAPIView):
     serializer_class = RecommendSerializer

@@ -72,9 +72,9 @@ class Profile(models.Model):
     marry_code = models.CharField(max_length=7,choices=MARRY_CHOICES,null=True,blank=True)
     max_income = models.IntegerField(null=True,blank=True)
     min_income = models.IntegerField(null=True,blank=True)
-    graduate = models.CharField(max_length=7,choices=GRADUATE_CHOICES,null=True,blank=True)
-    employment = models.CharField(max_length=7,choices=EMPLOYMENT_CHOICES,null=True,blank=True)
+    graduate_code = models.CharField(max_length=7,choices=GRADUATE_CHOICES,null=True,blank=True)
+    employment_code = models.CharField(max_length=7,choices=EMPLOYMENT_CHOICES,null=True,blank=True)
     goal = models.TextField(blank=True)
 
-    special = models.ManyToManyField(Special,related_name='profiles')
-    majors  = models.ManyToManyField(Major, related_name='profiles')
+    special_code = models.ManyToManyField(Special,related_name='profiles')
+    major_code  = models.ManyToManyField(Major, related_name='profiles')

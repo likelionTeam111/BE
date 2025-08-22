@@ -55,47 +55,73 @@ class LabelManyField(serializers.SlugRelatedField):
     }
 
 
-class ProfileSerializer(serializers.ModelSerializer):
-    # 단일 choice 필드
-    marry_code = DisplayChoiceField(choices=MARRY_CHOICES, required=False)
-    graduate_code = DisplayChoiceField(choices=GRADUATE_CHOICES, required=False)
-    employment_code = DisplayChoiceField(choices=EMPLOYMENT_CHOICES, required=False)
-    max_income = serializers.IntegerField(required=False, allow_null=True)
-    min_income = serializers.IntegerField(required=False, allow_null=True)
+# class ProfileSerializer(serializers.ModelSerializer):
+#     # 단일 choice 필드
+#     marry_code = DisplayChoiceField(choices=MARRY_CHOICES, required=False)
+#     graduate_code = DisplayChoiceField(choices=GRADUATE_CHOICES, required=False)
+#     employment_code = DisplayChoiceField(choices=EMPLOYMENT_CHOICES, required=False)
+#     max_income = serializers.IntegerField(required=False, allow_null=True)
+#     min_income = serializers.IntegerField(required=False, allow_null=True)
 
-    # M2M 필드: 라벨 입력, 코드 저장
-    majors_code = LabelManyField(many=True, slug_field="code",queryset=Major.objects.all(),required=False,allow_empty=True)
-    special_code = LabelManyField(many=True, slug_field="code",queryset=Special.objects.all(),required=False,allow_empty=True)
+#     # M2M 필드: 라벨 입력, 코드 저장
+#     majors_code = LabelManyField(many=True, slug_field="code",queryset=Major.objects.all(),required=False,allow_empty=True)
+#     special_code = LabelManyField(many=True, slug_field="code",queryset=Special.objects.all(),required=False,allow_empty=True)
 
-    class Meta:
-        model = Profile
-        fields = [
-            "age",
-            "region",
-            "marry_code",
-            "max_income", 
-            "min_income",
-            "graduate_code",
-            "employment_code",
-            "goal",
-            "majors_code",
-            "special_code",
-        ]
+#     class Meta:
+#         model = Profile
+#         fields = [
+#             "age",
+#             "region",
+#             "marry_code",
+#             "max_income", 
+#             "min_income",
+#             "graduate_code",
+#             "employment_code",
+#             "goal",
+#             "majors_code",
+#             "special_code",
+#         ]
 
-    def to_representation(self, instance):
-        data = super().to_representation(instance)
-        profile_data = []
+#     def to_representation(self, instance):
+#         data = super().to_representation(instance)
+#         profile_data = []
 
-        for key, value in data.items():
-            if isinstance(value, list):
-                if value:  # 빈 리스트가 아니면
-                    profile_data.append(value)  # flatten 하지 않고 그대로 추가
-            elif value not in (None, ""):
-                profile_data.append(value)
+#         for key, value in data.items():
+#             if isinstance(value, list):
+#                 if value:  # 빈 리스트가 아니면
+#                     profile_data.append(value)  # flatten 하지 않고 그대로 추가
+#             elif value not in (None, ""):
+#                 profile_data.append(value)
 
-        return {"profile_data": profile_data}
+#         return {"profile_data": profile_data}
     
 class RecommendSerializer(serializers.ModelSerializer):
     class Meta:
         model = Policy
         fields = ['id', 'plcyNm', 'plcyKywdNm', 'lclsfNm', 'mclsfNm']
+
+class ProfileSerializer(serializers.ModelSerializer):
+    major = serializers.SlugRelatedField(
+        many = True,
+        slug_field = 'code',
+        queryset=Major.objects.all()
+    )
+
+    special = serializers.SlugRelatedField(
+        many=True,
+        slug_field="code",
+        queryset=Special.objects.all()
+    )
+    marry = serializers.SerializerMethodField()
+    graduate = serializers.SerializerMethodField()
+    employment = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Profile
+        fields = ["id", "age", "min_income", "max_income",
+            "marry", "graduate", "employment", "major", "special",
+        ]
+    
+    def get_marry(self, obj): return obj.get_marry_code_display()
+    def get_graduate(self, obj): return obj.get_graduate_code_display()
+    def get_employment(self, obj): return obj.get_employment_code_display()
