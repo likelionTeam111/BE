@@ -28,18 +28,27 @@ class MyPageView(APIView):
         return Response(
             {
                 "profile": profile_data,
-                
             },
             status=status.HTTP_200_OK
         )
-
-
+    
 class EnrollView(APIView):
     permission_classes = [IsAuthenticated]
+    
     def post(self, request):
-        # user = CustomUser.objects.first()  # 테스트용
-
+        # user = CustomUser.objects.first() #테스트용 
         user = request.user
+        profile, created = Profile.objects.get_or_create(user=user)
+        serializer = ProfileSerializer(profile, data=request.data, partial=False)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED if created else status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def put(self, request):
+        user = CustomUser.objects.first()  # 테스트용
+
+        # user = request.user
         profile, _ = Profile.objects.update_or_create(
             user=user,
             defaults={
@@ -64,4 +73,3 @@ class EnrollView(APIView):
             serializer.save()  # LabelManyField가 자동으로 M2M 처리
             return Response(serializer.data, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
