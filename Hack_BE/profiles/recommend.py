@@ -47,7 +47,7 @@ def recommend_by_onboarding(user : object):
     )
 
     # 결혼
-    marry = user_profile.marry
+    marry = user_profile.marry_code
     qs = qs.filter(
         Q(mrgSttsCd__icontains=marry) |
         Q(mrgSttsCd="0055003") |
@@ -55,7 +55,7 @@ def recommend_by_onboarding(user : object):
         )
     
     # 학력
-    graduate = user_profile.graduate
+    graduate = user_profile.graduate_code
     qs = qs.filter(
         Q(schoolCd__icontains=graduate) |
         Q(schoolCd="0049010") |
@@ -63,7 +63,7 @@ def recommend_by_onboarding(user : object):
         )
     
     # 취업
-    employ = user_profile.employment
+    employ = user_profile.employment_code
     qs = qs.filter(
         Q(jobCd__icontains=employ) |
         Q(jobCd="0013010") |
@@ -71,7 +71,7 @@ def recommend_by_onboarding(user : object):
     )
 
     # 전공
-    major = [s.code for s in user_profile.major.all()]
+    major = [s.code for s in user_profile.major_code.all()]
     qs = qs.filter(
         Q(plcyMajorCd__icontains=major) |
         Q(plcyMajorCd="0011009") |
@@ -79,7 +79,7 @@ def recommend_by_onboarding(user : object):
     )  
 
     # 정책특화
-    special = [s.code for s in user_profile.special.all()]
+    special = [s.code for s in user_profile.special_code.all()]
     qs = qs.filter(
         Q(sbizCd__icontains=special) |
         Q(sbizCd="0014010") |

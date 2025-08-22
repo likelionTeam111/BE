@@ -1,12 +1,11 @@
 from django.urls import path
-from .views import EnrollView, MyPageView, Recommend_view, Profile_view
+from .views import Recommend_view, Profile_view, Enroll_view
 
 
 app_name = 'profiles'
 urlpatterns = [
-    path("mypage/",MyPageView.as_view(),name="profile-mypage"),
-    path("enroll/",EnrollView.as_view(),name="profile-enroll"),
-    path("enroll/",EnrollView.as_view(),name="profile-enroll"),
+    path("mypage/",Profile_view.as_view(),name="profile-mypage"),
+    path("enroll/",Enroll_view.as_view(),name="profile-enroll"),
+    path("update/",Enroll_view.as_view(),name="profile-update"),
     path("recommend/", Recommend_view.as_view()),
-    path("<int:id>/", Profile_view.as_view()),
 ]

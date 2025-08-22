@@ -2,100 +2,78 @@ from rest_framework import serializers
 from .models import *
 from policy.models import Policy
 
-class DisplayChoiceField(serializers.ChoiceField):
+MARRY_L2C   = {label: code for code, label in MARRY_CHOICES}
+GRAD_L2C    = {label: code for code, label in GRADUATE_CHOICES}
+EMP_L2C     = {label: code for code, label in EMPLOYMENT_CHOICES}
+MAJOR_L2C   = {label: code for code, label in MAJOR_CHOICES}
+SPECIAL_L2C = {label: code for code, label in SBIZ_CHOICES}
 
-    # DB에 저장된 코드 → 응답 라벨로 변환
-    def to_representation(self, value):
-        if value in ("", None):
-            return None
-        return self._choices.get(value, value)
-    
-    # 입력 라벨 → 코드 변환
-    def to_internal_value(self, data):
-        for key, val in self._choices.items():
-            if val == data:
-                return key
-        # 라벨이 choices에 없으면 validation error 발생
-        self.fail("invalid_choice", input=data)
+class EnrollSerializer(serializers.ModelSerializer):
+    major_code = serializers.SlugRelatedField(
+        many = True,
+        slug_field = 'code',
+        queryset=Major.objects.all()
+    )
 
-
-class LabelManyField(serializers.SlugRelatedField):
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        if self.queryset.model.__name__ == "Major":
-            choices = dict(MAJOR_CHOICES)
-        elif self.queryset.model.__name__ == "Special":
-            choices = dict(SBIZ_CHOICES)
-        else:
-            choices = {}
-
-        self.code_to_label = choices
-        self.label_to_code = {v: k for k, v in choices.items()}
-
-    def to_internal_value(self, data):
-        # 비어있으면 빈 리스트 반환
-        if data in (None, "", []):
-            return []  
-        label = str(data).strip()
-        code = self.label_to_code.get(label)
-        if not code:
-            self.fail("invalid_choice", input=data)
-        try:
-            return self.get_queryset().get(code=code)
-        except self.get_queryset().model.DoesNotExist:
-            self.fail("not_found", input=data)
-
-    def to_representation(self, obj):
-        return self.code_to_label.get(getattr(obj, "code", None), getattr(obj, "code", None))
-
-    default_error_messages = {
-        "invalid_choice": '"{input}"은(는) 허용된 라벨이 아닙니다.',
-        "not_found": '"{input}" 라벨에 해당하는 항목을 찾을 수 없습니다.',
-    }
-
-
-class ProfileSerializer(serializers.ModelSerializer):
-    # 단일 choice 필드
-    marry_code = DisplayChoiceField(choices=MARRY_CHOICES, required=False)
-    graduate_code = DisplayChoiceField(choices=GRADUATE_CHOICES, required=False)
-    employment_code = DisplayChoiceField(choices=EMPLOYMENT_CHOICES, required=False)
-    max_income = serializers.IntegerField(required=False, allow_null=True)
-    min_income = serializers.IntegerField(required=False, allow_null=True)
-
-    # M2M 필드: 라벨 입력, 코드 저장
-    majors_code = LabelManyField(many=True, slug_field="code",queryset=Major.objects.all(),required=False,allow_empty=True)
-    special_code = LabelManyField(many=True, slug_field="code",queryset=Special.objects.all(),required=False,allow_empty=True)
+    special_code = serializers.SlugRelatedField(
+        many=True,
+        slug_field="code",
+        queryset=Special.objects.all()
+    )
 
     class Meta:
         model = Profile
-        fields = [
-            "age",
-            "region",
-            "marry_code",
-            "max_income", 
-            "min_income",
-            "graduate_code",
-            "employment_code",
-            "goal",
-            "majors_code",
-            "special_code",
+        fields = ["id", "age", "region", "min_income", "max_income",
+            "marry_code", "graduate_code", "employment_code", "major_code", "special_code", "goal"
         ]
+        
+    def to_internal_value(self, data):
+        data = data.copy()
 
-    def to_representation(self, instance):
-        data = super().to_representation(instance)
-        profile_data = []
+        # 단일 choices
+        for key, data_key, table in (
+            ("marry_code", "marry", MARRY_L2C),
+            ("graduate_code", "graduate", GRAD_L2C),
+            ("employment_code", "employment", EMP_L2C),
+        ):
+            val = data.get(data_key, None)
+            if isinstance(val, str):
+                data[key] = table.get(val, val)  # 라벨이면 코드로 치환, 코드면 그대로
 
-        for key, value in data.items():
-            if isinstance(value, list):
-                if value:  # 빈 리스트가 아니면
-                    profile_data.append(value)  # flatten 하지 않고 그대로 추가
-            elif value not in (None, ""):
-                profile_data.append(value)
+        # M2M
+        majors = data.pop("major", None)
+        if isinstance(majors, list):
+            data["major_code"] = [MAJOR_L2C.get(v, v) for v in majors]
+        specials = data.pop("special", None)
+        if isinstance(specials, list):
+            data["special_code"] = [SPECIAL_L2C.get(v, v) for v in specials]
 
-        return {"profile_data": profile_data}
+        return super().to_internal_value(data)
+        
+class ProfileSerializer(serializers.ModelSerializer):
+    major = serializers.SerializerMethodField()
+    special = serializers.SerializerMethodField()
+
+    marry = serializers.SerializerMethodField()
+    graduate = serializers.SerializerMethodField()
+    employment = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Profile
+        fields = ["id", "age", "region", "min_income", "max_income",
+            "marry", "graduate", "employment", "major", "special", "goal"
+        ]
+    
+    def get_marry(self, obj): return obj.get_marry_code_display()
+    def get_graduate(self, obj): return obj.get_graduate_code_display()
+    def get_employment(self, obj): return obj.get_employment_code_display()
+    def get_major(self, obj):
+        return [m.get_code_display() for m in obj.major_code.all()]
+
+    def get_special(self, obj):
+        return [s.get_code_display() for s in obj.special_code.all()]
     
 class RecommendSerializer(serializers.ModelSerializer):
     class Meta:
         model = Policy
-        fields = ['id', 'plcyNm', 'plcyKywdNm', 'lclsfNm', 'mclsfNm']
+        fields = ['id', 'plcyNm', 'plcyKywdNm', 'lclsfNm', 'mclsfNm']  
