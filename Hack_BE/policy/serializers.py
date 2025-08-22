@@ -48,7 +48,7 @@ class PolicyInfoSerializer(serializers.ModelSerializer):
             # 사업기간
             "bizPrd",
             # 지원내용
-            "about_benefit", 'sprtSclCnt'
+            "about_benefit", 'sprtSclCnt',
             # 신청관련
             "aplyYmd", "sbmsnDcmntCn", "plcyAplyMthdCn", "srngMthdCn",  
             #요건
@@ -117,8 +117,6 @@ class PolicyInfoSerializer(serializers.ModelSerializer):
             if etc != "":
                 etc += f'\n {obj.ptcpPrpTrgtCn}'
         return etc
-
-
 
 class FavoriteSerializer(serializers.ModelSerializer):
     class Meta:
