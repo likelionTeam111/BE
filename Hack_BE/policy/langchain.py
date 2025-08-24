@@ -49,7 +49,7 @@ def retrieve(query: str):
     """Retrieve information related to a query."""
     retrieved_docs = vector_store.similarity_search(query, k=3)
     serialized = "\n".join(
-        (f"Source: {doc.metadata}\nContent: {doc.page_content}\nCondition: {doc.condition}")
+        (f"Source: {doc.metadata.get('정책명')}, {doc.metadata.get('url')} \nContent: {doc.page_content}, {doc.metadata}")
         for doc in retrieved_docs
     )
     return serialized, retrieved_docs
@@ -79,7 +79,6 @@ def generate(state: MessagesState):
 
     # Format into prompt
     docs_content = "\n".join(doc.content for doc in tool_messages)
-    docs_content += "\n".join(doc.condition for doc in tool_messages)
     system_message_content = (
         "You are an assistant for question-answering tasks. "
         "Use the following pieces of retrieved context to answer "

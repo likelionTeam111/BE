@@ -40,22 +40,23 @@ def build_policy_text(p: "Policy") -> str:
     _add_part(parts, "정책 설명", f"{p.plcyExplnCn}, {p.plcySprtCn}, {p.etcMttrCn}, {_get_display(p, 'plcyPvsnMthdCd')}")
     
     # 기타 필드
+    # _add_part(parts, "사업 기간", f"{p.bizPrdBgngYmd}~{p.bizPrdEndYmd}" if p.bizPrdBgngYmd or p.bizPrdEndYmd else p.bizPrdEtcCn)
     _add_part(parts,"가신청 자격조건", p.addAplyQlfcCndCn)
     _add_part(parts,"참여 제안 대상 내용", p.ptcpPrpTrgtCn)
 
     return ", ".join(parts)
-
-def build_policy_condition(p: "Policy") -> str:
+def build_policy_submission(p: "Policy") -> str:
     parts = []
-    _add_part(parts, "사업 기간", f"{p.bizPrdBgngYmd}~{p.bizPrdEndYmd}" if p.bizPrdBgngYmd or p.bizPrdEndYmd else p.bizPrdEtcCn)
     
     # 신청 관련
     _add_part(parts, "신청 방법", p.plcyAplyMthdCn)
     _add_part(parts, "신청 서류", p.sbmsnDcmntCn)
     _add_part(parts, "심사 방법", p.srngMthdCn)
     _add_part(parts, "신청 기간", p.aplyYmd)
-    _add_part(parts, "URL", p.aplyUrlAddr or p.refUrlAddr1 or p.refUrlAddr2)
 
+    return ", ".join(parts)
+
+def build_policy_condition(p: "Policy") -> str:
     # 요건 필드
     _add_part(parts, "지역", p.zipCd)
     _add_part(parts, "나이 요건", p.sprtTrgtAgeLmtYn if p.sprtTrgtAgeLmtYn == "N" else f"{num_data(p.sprtTrgtMinAge)} ~ {num_data(p.sprtTrgtMaxAge)}")
@@ -92,13 +93,13 @@ class PolicyLoader(BaseLoader):
             docs.append(
                 Document(
                     page_content=build_policy_text(p),
-                    condition=build_policy_condition(p),
                     metadata={
                         "id": p.plcyNo,
-                        "지역":p.zipCd,
                         "정책명": p.plcyNm,
-                        "키워드": f"{p.plcyKywdNm}, {p.lclsfNm}, {p.mclsfNm}",
-                        "source": f"{p.aplyUrlAddr} or {p.refUrlAddr1} or {p.refUrlAddr2}"
+                        "사업기간": f"{p.bizPrdBgngYmd}~{p.bizPrdEndYmd}" if p.bizPrdBgngYmd or p.bizPrdEndYmd else p.bizPrdEtcCn,
+                        "신청관련": build_policy_submission(p),
+                        "조건": build_policy_condition(p),
+                        "url": f"{p.aplyUrlAddr} or {p.refUrlAddr1} or {p.refUrlAddr2}"
                     }
                 )
             )
