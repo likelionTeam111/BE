@@ -59,10 +59,10 @@ class Recommend_all_view(generics.GenericAPIView):
         user = request.user
         categories = ["일자리", "주거", "교육", "복지문화", "참여권리"]
 
-        out = {}
+        out = []
         for cat in categories:
             qs = recommend_by_onboarding(user, cat)[:5]
             data = self.get_serializer(qs, many=True).data
-            out[cat] = data
+            out.extend(data)
 
         return Response(out)
