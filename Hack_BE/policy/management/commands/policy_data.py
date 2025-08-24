@@ -6,6 +6,38 @@ from policy.models import Policy
 from .policy_loader import build_simple_policy_text
 from openai import OpenAI
 
+ZIP_PREFIX = {
+    "11": "서울특별시",
+    "26": "부산광역시",
+    "27": "대구광역시",
+    "28": "인천광역시",
+    "29": "광주광역시",
+    "30": "대전광역시",
+    "31": "울산광역시",
+    "36": "세종특별자치시",
+    "41": "경기도",
+    "43": "충청북도",
+    "44": "충청남도",
+    "46": "전라남도",
+    "47": "경상북도",
+    "48": "경상남도",
+    "50": "제주특별자치도",
+    "51": "강원특별자치도",
+    "52": "전북특별자치도"
+}
+
+def extract_cities(zipCd: str) -> str:
+    if not zipCd:
+        return ""
+    cities = set()
+    for code in zipCd.split(","):
+        prefix = code.strip()[:2]
+        if prefix in ZIP_PREFIX:
+            cities.add(ZIP_PREFIX[prefix])
+    if len(sorted(cities)) == 17:
+        return "전국"
+    return ", ".join(sorted(cities))
+
 class Command(BaseCommand):
     def handle(self, *args, **options):
         saved = 0
@@ -37,7 +69,7 @@ class Command(BaseCommand):
                 # 중앙부처만 저장
                 if policy_data.get('pvsnInstGroupCd') != '0054001':
                     continue
-                
+
                 obj, created = Policy.objects.update_or_create(
                     plcyNo = policy_data['plcyNo'],
                     defaults={
@@ -70,6 +102,7 @@ class Command(BaseCommand):
                         'addAplyQlfcCndCn': policy_data.get('addAplyQlfcCndCn',""),
                         'ptcpPrpTrgtCn': policy_data.get('ptcpPrpTrgtCn',""),
                         'inqCnt': policy_data.get('inqCnt',""),
+                        'zipCd' : extract_cities(policy_data.get('zipCd',"")),
                         'rgtrInstCdNm': policy_data.get('rgtrInstCdNm',""),
                         'rgtrHghrkInstCdNm': policy_data.get('rgtrHghrkInstCdNm',""),
                         'plcyMajorCd': policy_data.get('plcyMajorCd',""),

@@ -23,7 +23,6 @@ class PolicySerializer(serializers.ModelSerializer):
     class Meta:
         model = Policy
         fields = '__all__'
-
     
 class PolicyInfoSerializer(serializers.ModelSerializer):
     mrgSttsCd_display = serializers.SerializerMethodField()
@@ -35,6 +34,7 @@ class PolicyInfoSerializer(serializers.ModelSerializer):
     is_favorited = serializers.SerializerMethodField()
     addr = serializers.SerializerMethodField()
     about_benefit = serializers.SerializerMethodField()
+    sprtSclCnt = serializers.SerializerMethodField()
     bizPrd = serializers.SerializerMethodField()
     ageLmt = serializers.SerializerMethodField()
     earnLmt = serializers.SerializerMethodField()
@@ -46,7 +46,7 @@ class PolicyInfoSerializer(serializers.ModelSerializer):
             # 개요
             'plcyNm', "plcyExplnCn",  'aiSummary', 'is_favorited', 'addr', "plcyKywdNm",
             # 사업기간
-            "bizPrd",
+            "bizPrd", "zipCd",
             # 지원내용
             "about_benefit", 'sprtSclCnt',
             # 신청관련
@@ -80,10 +80,13 @@ class PolicyInfoSerializer(serializers.ModelSerializer):
     def get_about_benefit(self,obj):
         return f'{obj.plcySprtCn} / {obj.etcMttrCn}'
     
+    def get_sprtSclCnt(self,obj):
+        return obj.sprtSclCnt if obj.sprtSclCnt != "0" else ""
+    
     def get_bizPrd(self, obj):
         bizprd = ""
-        if obj.bizPrdBgngYmd != "" or obj.bizPrdEndYmd != "":
-                bizprd += f'{obj.bizPrdBgngYmd} ~ {obj.bizPrdEndYmd}'
+        if obj.bizPrdBgngYmd.strip() != "" or obj.bizPrdEndYmd.strip() != "":
+            bizprd += f'{obj.bizPrdBgngYmd} ~ {obj.bizPrdEndYmd}'
         if obj.bizPrdEtcCn != "":
             if bizprd:
                 bizprd += " / "
@@ -92,8 +95,9 @@ class PolicyInfoSerializer(serializers.ModelSerializer):
     
     def get_ageLmt(self, obj):
         if obj.sprtTrgtAgeLmtYn == "Y":
-            if obj.sprtTrgtMinAge != "" or obj.sprtTrgtMaxAge != "":
+            if (obj.sprtTrgtMinAge != "" or obj.sprtTrgtMaxAge != "") and obj.sprtTrgtMaxAge != "0":
                 return f'{obj.sprtTrgtMinAge} ~ {obj.sprtTrgtMaxAge}'
+            return "내용 참조"
         else:
             return "제한없음"
     
@@ -104,7 +108,7 @@ class PolicyInfoSerializer(serializers.ModelSerializer):
         else:
             earnLmt += obj.get_earnCndSeCd_display()
             if (obj.earnMinAmt != "0" and obj.earnMaxAmt != "0") and (obj.earnMinAmt != "" and obj.earnMaxAmt != ""):
-                earnLmt += f' / {obj.earnMinAmt} ~ {obj.earnMinAmt}'
+                earnLmt += f' / {obj.earnMinAmt} ~ {obj.earnMaxAmt}'
         if obj.earnEtcCn != "":
             earnLmt += f' / {obj.earnEtcCn}'
         return earnLmt
@@ -124,7 +128,7 @@ class FavoriteSerializer(serializers.ModelSerializer):
         fields = ["id", "user", "policy", "created_at"]
         read_only_fields = ["id", "user", "policy", "created_at"]
 
-class FavoriteListSerializer(serializers.ModelSerializer):
+class PolicyListSerializer(serializers.ModelSerializer):
     class Meta:
         model = Policy
-        fields = ['plcyNo', 'plcyNm', 'plcyKywdNm', 'lclsfNm', 'mclsfNm']
+        fields = ['id', 'plcyNm', 'plcyKywdNm', 'lclsfNm', 'mclsfNm']

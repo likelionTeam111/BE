@@ -92,10 +92,21 @@ class Favorite_policy_view(generics.GenericAPIView):
 class Favorite_policy_list_view(generics.ListAPIView):
     # 마이페이지
     permission_classes = [permissions.IsAuthenticated]
-    serializer_class = FavoriteListSerializer
+    serializer_class = PolicyListSerializer
     pagination_class = None
     
     def get_queryset(self):
         return Policy.objects.filter(
             id__in=Favorite_policy.objects.filter(user=self.request.user).values_list('policy_id', flat=True)
         )
+    
+class Policy_search_view(generics.ListAPIView):
+    serializer_class = PolicyListSerializer
+    pagination_class = PageNumberPagination
+
+    def get_queryset(self):
+        qs = Policy.objects.all()
+        keyword = (self.request.query_params.get("plcyNm") or "").strip()
+        if not keyword:
+            return qs.none()
+        return qs.filter(plcyNm__icontains=keyword).order_by("-id")
