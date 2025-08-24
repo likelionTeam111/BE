@@ -41,7 +41,7 @@ class Command(BaseCommand):
         all_splits = text_splitter.split_documents(docs)
 
         try:
-            vector_store.delete_collection()  # 없으면 ValueError 가능
+            vector_store.delete_collection()
         except ValueError:
             pass
         vector_store.create_collection() 

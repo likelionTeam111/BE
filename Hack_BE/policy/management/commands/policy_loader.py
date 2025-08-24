@@ -45,8 +45,9 @@ def build_policy_text(p: "Policy") -> str:
     _add_part(parts,"참여 제안 대상 내용", p.ptcpPrpTrgtCn)
 
     return ", ".join(parts)
-def build_policy_submission(p: "Policy") -> str:
+def build_policy_supplement(p: "Policy") -> str:
     parts = []
+    _add_part(parts,"사업기간", f"{p.bizPrdBgngYmd}~{p.bizPrdEndYmd}" if p.bizPrdBgngYmd or p.bizPrdEndYmd else p.bizPrdEtcCn)
     
     # 신청 관련
     _add_part(parts, "신청 방법", p.plcyAplyMthdCn)
@@ -54,9 +55,6 @@ def build_policy_submission(p: "Policy") -> str:
     _add_part(parts, "심사 방법", p.srngMthdCn)
     _add_part(parts, "신청 기간", p.aplyYmd)
 
-    return ", ".join(parts)
-
-def build_policy_condition(p: "Policy") -> str:
     # 요건 필드
     _add_part(parts, "지역", p.zipCd)
     _add_part(parts, "나이 요건", p.sprtTrgtAgeLmtYn if p.sprtTrgtAgeLmtYn == "N" else f"{num_data(p.sprtTrgtMinAge)} ~ {num_data(p.sprtTrgtMaxAge)}")
@@ -96,9 +94,6 @@ class PolicyLoader(BaseLoader):
                     metadata={
                         "id": p.plcyNo,
                         "정책명": p.plcyNm,
-                        "사업기간": f"{p.bizPrdBgngYmd}~{p.bizPrdEndYmd}" if p.bizPrdBgngYmd or p.bizPrdEndYmd else p.bizPrdEtcCn,
-                        "신청관련": build_policy_submission(p),
-                        "조건": build_policy_condition(p),
                         "url": f"{p.aplyUrlAddr} or {p.refUrlAddr1} or {p.refUrlAddr2}"
                     }
                 )
