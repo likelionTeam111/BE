@@ -43,6 +43,7 @@ class PolicyInfoSerializer(serializers.ModelSerializer):
     class Meta:
         model = Policy
         fields = [
+            'id',
             # 개요
             'plcyNm', "plcyExplnCn",  'aiSummary', 'is_favorited', 'addr', "plcyKywdNm",
             # 사업기간
