@@ -6,18 +6,18 @@ from rest_framework.pagination import PageNumberPagination
 from .models import Profile
 from .serializers import ProfileSerializer, EnrollSerializer
 from policy.serializers import PolicyListSerializer
-from django.shortcuts import get_object_or_404
+from policy.models import Policy
 from .recommend import recommend_by_onboarding
 
-class Profile_view(generics.RetrieveAPIView):
+class Profile_view(APIView):
     permission_classes = [IsAuthenticated]
-    serializer_class = ProfileSerializer
 
-    def get_queryset(self):
-        return Profile.objects.select_related('user')
-    
-    def get_object(self):
-        return get_object_or_404(self.get_queryset(), user=self.request.user)
+    def get(self, request):
+        profile = Profile.objects.filter(user=request.user).first()
+        print(profile)
+        if profile is None:
+            return Response({})
+        return Response(ProfileSerializer(profile).data)
         
         
 class Enroll_view(APIView):
@@ -51,3 +51,18 @@ class Recommend_view(generics.ListAPIView):
         qs = recommend_by_onboarding(user, category)
         return qs[:5]
 
+class Recommend_all_view(generics.GenericAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = PolicyListSerializer
+
+    def get(self, request, *args, **kwargs):
+        user = request.user
+        categories = ["일자리", "주거", "교육", "복지문화", "참여권리"]
+
+        out = []
+        for cat in categories:
+            qs = recommend_by_onboarding(user, cat)[:5]
+            data = self.get_serializer(qs, many=True).data
+            out.extend(data)
+
+        return Response(out)
