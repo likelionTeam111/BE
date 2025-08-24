@@ -16,6 +16,9 @@ from langgraph.checkpoint.memory import MemorySaver
 from .models import Policy
 from .management.commands.policy_loader import build_policy_supplement
 
+from datetime import date
+today = date.today().isoformat()
+
 # LangSmith
 os.environ["LANGSMITH_TRACING"] = "true"
 os.environ["LANGSMITH_API_KEY"] = config('langsmith')
@@ -50,7 +53,8 @@ graph_builder = StateGraph(MessagesState)
 @tool(response_format="content_and_artifact")
 def retrieve(query: str):
     """Retrieve information related to a query."""
-    retrieved_docs = vector_store.similarity_search(query, k=3)
+    retrieved_docs = vector_store.similarity_search(query, filter={"$or": [{"마감일": None}, {"마감일": {"$gte": today}},]},)
+    # 디폴트 : k=4
     artifact = []
     serialized_list = []
     for doc in retrieved_docs:
@@ -67,7 +71,7 @@ def retrieve(query: str):
         })
     serialized = "\n".join(serialized_list)
     return serialized, artifact
-# 확인해봐야됨
+# 확인해봐야됨864
 
 # Step 1: Generate an AIMessage that may include a tool-call to be sent.
 def query_or_respond(state: MessagesState):

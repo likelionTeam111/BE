@@ -122,7 +122,7 @@ def recommend_by_onboarding(user : object, category : str):
     query = user.profile.goal
     filtered_data = recommend_filter(user, category)
     
-    retrieved_docs = vector_store.similarity_search(query, k=10, filter={"id": {"$in": [p.plcyNo for p in filtered_data]}})
+    retrieved_docs = vector_store.similarity_search(query, k=10, filter={"id": {"$in": [p.id for p in filtered_data]}})
     recommend_list = []
     name_list = []
     for doc in retrieved_docs:
@@ -132,14 +132,14 @@ def recommend_by_onboarding(user : object, category : str):
         name_list.append(doc.metadata.get("정책명"))
     
     order_expr = Case(
-    *[When(plcyNm=name, then=Value(i)) for i, name in enumerate(recommend_list)],
+    *[When(id=pid, then=Value(i)) for i, pid in enumerate(recommend_list)],
     default=Value(len(recommend_list)),
     output_field=IntegerField(),
     )
 
     qs = (
     Policy.objects
-    .filter(plcyNo__in=recommend_list)
+    .filter(id__in=recommend_list)
     .annotate(_ord=order_expr)
     .order_by("_ord")
     )
