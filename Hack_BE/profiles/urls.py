@@ -7,5 +7,5 @@ urlpatterns = [
     path("mypage/",Profile_view.as_view(),name="profile-mypage"),
     path("enroll/",Enroll_view.as_view(),name="profile-enroll"),
     path("update/",Enroll_view.as_view(),name="profile-update"),
-    path("recommend/", Recommend_view.as_view()),
+    path("recommend/<str:category>/", Recommend_view.as_view()),
 ]

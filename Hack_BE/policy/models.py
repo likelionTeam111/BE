@@ -125,6 +125,7 @@ class Policy(models.Model):
     jobCd = models.CharField(max_length=100, choices=JOB_CHOICES, null=True, blank=True)  # 취업 요건 코드
     schoolCd = models.CharField(max_length=100, choices=SCHOOL_CHOICES, null=True, blank=True)  # 학력 요건 코드
     sbizCd = models.CharField(max_length=100, choices=SBIZ_CHOICES, null=True, blank=True)  # 정책 특화 요건 코드
+    zipCd = models.TextField(null=True, blank=True) # 거주지역코드
     addAplyQlfcCndCn = models.TextField(null=True, blank=True)  # 가신청 자격조건 내용
     ptcpPrpTrgtCn = models.TextField(null=True, blank=True)  # 참여 제안 대상 내용
 

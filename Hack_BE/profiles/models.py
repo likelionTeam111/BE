@@ -76,5 +76,5 @@ class Profile(models.Model):
     employment_code = models.CharField(max_length=7,choices=EMPLOYMENT_CHOICES,null=True,blank=True)
     goal = models.TextField(blank=True, null=True)
 
-    special_code = models.ManyToManyField(Special,null=True,blank=True,related_name='profiles')
-    major_code  = models.ManyToManyField(Major,null=True,blank=True,related_name='profiles')
+    special_code = models.ManyToManyField(Special,blank=True,related_name='profiles')
+    major_code  = models.ManyToManyField(Major,blank=True,related_name='profiles')

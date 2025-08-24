@@ -72,8 +72,3 @@ class ProfileSerializer(serializers.ModelSerializer):
 
     def get_special(self, obj):
         return [s.get_code_display() for s in obj.special_code.all()]
-    
-class RecommendSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Policy
-        fields = ['id', 'plcyNm', 'plcyKywdNm', 'lclsfNm', 'mclsfNm']  

@@ -4,7 +4,8 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.pagination import PageNumberPagination
 from .models import Profile
-from .serializers import ProfileSerializer, RecommendSerializer, EnrollSerializer
+from .serializers import ProfileSerializer, EnrollSerializer
+from policy.serializers import PolicyListSerializer
 from django.shortcuts import get_object_or_404
 from .recommend import recommend_by_onboarding
 
@@ -42,10 +43,11 @@ class Enroll_view(APIView):
 
 class Recommend_view(generics.ListAPIView):
     permission_classes = [IsAuthenticated]
-    serializer_class = RecommendSerializer
-    pagination_class = PageNumberPagination
+    serializer_class = PolicyListSerializer
+    pagination_class = None
     def get_queryset(self):
         user = self.request.user
-        qs = recommend_by_onboarding(user)
-        return qs
+        category = self.kwargs.get("category")
+        qs = recommend_by_onboarding(user, category)
+        return qs[:5]
 
