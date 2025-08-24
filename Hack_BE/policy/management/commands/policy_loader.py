@@ -1,6 +1,10 @@
 from langchain_core.documents import Document
 from langchain_core.document_loaders import BaseLoader
 from policy.models import Policy
+
+class CustomDocument(Document):
+    condition: str | None = None
+
 def _get_display(obj, field):
     fields = field.split(",")
     labels = []
@@ -33,15 +37,24 @@ def build_policy_text(p: "Policy") -> str:
     # 기본 필드
     _add_part(parts, "정책명", p.plcyNm)
     _add_part(parts, "키워드", f"{p.plcyKywdNm}, {p.lclsfNm}, {p.mclsfNm}")
-    _add_part(parts, "제공방법", _get_display(p, "plcyPvsnMthdCd"))
     _add_part(parts, "정책 설명", f"{p.plcyExplnCn}, {p.plcySprtCn}, {p.etcMttrCn}, {_get_display(p, 'plcyPvsnMthdCd')}")
+    
+    # 기타 필드
+    _add_part(parts,"가신청 자격조건", p.addAplyQlfcCndCn)
+    _add_part(parts,"참여 제안 대상 내용", p.ptcpPrpTrgtCn)
+
+    return ", ".join(parts)
+
+def build_policy_condition(p: "Policy") -> str:
+    parts = []
     _add_part(parts, "사업 기간", f"{p.bizPrdBgngYmd}~{p.bizPrdEndYmd}" if p.bizPrdBgngYmd or p.bizPrdEndYmd else p.bizPrdEtcCn)
+    
+    # 신청 관련
     _add_part(parts, "신청 방법", p.plcyAplyMthdCn)
     _add_part(parts, "신청 서류", p.sbmsnDcmntCn)
     _add_part(parts, "심사 방법", p.srngMthdCn)
     _add_part(parts, "신청 기간", p.aplyYmd)
     _add_part(parts, "URL", p.aplyUrlAddr or p.refUrlAddr1 or p.refUrlAddr2)
-    _add_part(parts, "등록기관", p.rgtrInstCdNm)
 
     # 요건 필드
     _add_part(parts, "지역", p.zipCd)
@@ -52,10 +65,6 @@ def build_policy_text(p: "Policy") -> str:
     _add_part(parts, "취업 요건", _get_display(p, "jobCd"))
     _add_part(parts, "학력 요건", _get_display(p, "schoolCd"))
     _add_part(parts, "특화 요건", _get_display(p, "sbizCd"))
-
-    # 기타 필드
-    _add_part(parts,"가신청 자격조건", p.addAplyQlfcCndCn)
-    _add_part(parts,"참여 제안 대상 내용", p.ptcpPrpTrgtCn)
 
     return ", ".join(parts)
 
@@ -83,6 +92,7 @@ class PolicyLoader(BaseLoader):
             docs.append(
                 Document(
                     page_content=build_policy_text(p),
+                    condition=build_policy_condition(p),
                     metadata={
                         "id": p.plcyNo,
                         "지역":p.zipCd,
