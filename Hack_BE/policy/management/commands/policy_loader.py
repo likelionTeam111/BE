@@ -1,6 +1,7 @@
 from langchain_core.documents import Document
 from langchain_core.document_loaders import BaseLoader
 from policy.models import Policy
+from datetime import datetime
 
 class CustomDocument(Document):
     condition: str | None = None
@@ -88,13 +89,20 @@ class PolicyLoader(BaseLoader):
     def load(self):
         docs = []
         for p in self.qs.iterator(chunk_size=500):
+            if p.bizPrdEndYmd: 
+                try:
+                    end_date = datetime.strptime(p.bizPrdEndYmd, "%Y%m%d").date().isoformat()
+                except ValueError:
+                    end_date = None
+            first_url = next(filter(None, [p.aplyUrlAddr, p.refUrlAddr1, p.refUrlAddr2]), None)
             docs.append(
                 Document(
                     page_content=build_policy_text(p),
                     metadata={
-                        "id": p.plcyNo,
+                        "id": p.id,
                         "정책명": p.plcyNm,
-                        "url": f"{p.aplyUrlAddr} or {p.refUrlAddr1} or {p.refUrlAddr2}"
+                        "마감일": end_date,
+                        "url": first_url
                     }
                 )
             )
