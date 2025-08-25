@@ -250,7 +250,7 @@ CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",
     "http://127.0.0.1:8000",
     "https://youthassistant.store",
-    "https://fe-rose-zeta.vercel.app/auth",
+    "https://fe-rose-zeta.vercel.app",
 ]
 
 CORS_ALLOW_CREDENTIALS = True
