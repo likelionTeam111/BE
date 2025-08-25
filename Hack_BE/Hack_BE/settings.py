@@ -205,8 +205,8 @@ REST_FRAMEWORK = {
 
 
 SIMPLE_JWT = {
-    'ACCESS_TOKEN_LIFETIME': timedelta(hours=4), # 액세스 토큰의 유효기간    # 배포할때 다시 수정(hours=1)
-    'REFRESH_TOKEN_LIFETIME': timedelta(days=10), # 리프레시 토큰의 유효기간    # days=1
+    'ACCESS_TOKEN_LIFETIME': timedelta(hours=4), # 액세스 토큰의 유효기간
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=1), # 리프레시 토큰의 유효기간 
     'ROTATE_REFRESH_TOKENS': False,
     'BLACKLIST_AFTER_ROTATION': True,
     'AUTH_HEADER_TYPES': ('Bearer',),
@@ -250,6 +250,7 @@ CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",
     "http://127.0.0.1:8000",
     "https://youthassistant.store",
+    "https://fe-rose-zeta.vercel.app/auth",
 ]
 
 CORS_ALLOW_CREDENTIALS = True
