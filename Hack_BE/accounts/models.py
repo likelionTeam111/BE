@@ -10,3 +10,6 @@ class CustomUser(AbstractUser):
   nickname = models.CharField(max_length=100)
   age = models.CharField(max_length=20)
   location = models.CharField(max_length=200)
+
+  def __str__(self):
+        return self.nickname

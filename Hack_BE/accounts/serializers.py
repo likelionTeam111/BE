@@ -25,6 +25,7 @@ class CustomRegisterSerializer(RegisterSerializer):
         user = adapter.new_user(request)
         self.cleaned_data = self.get_cleaned_data()
         user.username = self.cleaned_data.get('username')
+        user.nickname = self.cleaned_data.get('nickname')
         user.save()
         adapter.save_user(request, user, self)
         return user
