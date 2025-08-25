@@ -143,5 +143,5 @@ def recommend_by_onboarding(user : object, category : str):
     .annotate(_ord=order_expr)
     .order_by("_ord")
     )
-
+    
     return qs
